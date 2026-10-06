@@ -97,16 +97,26 @@ p { margin: 0; }
 .icon-btn svg { width: 22px; height: 22px; }
 .counter .info { padding: 8px 16px 0; text-align: center; display: flex; flex-direction: column; gap: 2px; }
 .counter .meaning { font-size: 13px; color: var(--muted); max-width: 34ch; margin: 0 auto; }
-.tap { flex: 1; margin: 12px 16px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); touch-action: none; user-select: none; -webkit-user-select: none; position: relative; display: grid; place-items: center; min-height: 300px; }
-.tap:active { background: var(--sunk); }
-.ring { width: min(78vw, 300px); max-width: 100%; aspect-ratio: 1; position: relative; }
-.ring svg { width: 100%; height: 100%; display: block; }
-.ring .bd { fill: var(--bead); transition: fill .12s; }
-.ring .bd.on { fill: var(--accent); }
-.ring .bd.cur { fill: var(--fg); }
+.tap { flex: 1; margin: 8px 16px; border-radius: 24px; background: radial-gradient(circle at 50% 45%, var(--surface), var(--bg) 70%); border: 1px solid var(--line); touch-action: none; user-select: none; -webkit-user-select: none; position: relative; display: grid; place-items: center; min-height: 300px; }
+.ring { width: min(84vw, 340px); max-width: 100%; aspect-ratio: 1; position: relative; }
+.ring svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.ring .bd { opacity: .3; transition: opacity .15s, filter .15s; }
+.ring .bd.on { opacity: 1; filter: drop-shadow(0 0 1.2px var(--glow)); }
+.ring .bd.cur { filter: drop-shadow(0 0 2.6px var(--glow)); }
+.ring .guru { filter: drop-shadow(0 0 1.5px var(--glow)); }
 .ring .mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
-.ring .num { font-family: var(--f-display); font-size: 56px; line-height: 1.3; font-weight: 700; }
+.ring .num { font-family: var(--f-display); font-size: 64px; line-height: 1.3; font-weight: 700; color: var(--accent); }
+.ring .num.pulse { animation: pulse .18s ease-out; }
+@keyframes pulse { from { transform: scale(1.08); } to { transform: scale(1); } }
 .tap .hint { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-size: 12px; color: var(--muted); pointer-events: none; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--sunk); border-radius: 12px; padding: 4px; gap: 4px; }
+.seg button { border: 0; background: none; border-radius: 9px; padding: 6px; min-height: 40px; color: var(--muted); }
+.seg button[aria-checked="true"] { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: 0 1px 2px rgb(0 0 0 / .2); }
+.woods { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.wood { display: flex; align-items: center; gap: 10px; text-align: left; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+.wood[aria-pressed="true"] { border: 2px solid var(--accent); }
+.wood span { display: flex; flex-direction: column; line-height: 1.5; min-width: 0; }
+.wood small { color: var(--muted); font-size: 12px; }
 .counter footer { padding: 0 16px calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; }
 .rounds { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
 .rounds i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent); }
@@ -128,7 +138,7 @@ details summary { cursor: pointer; font-weight: 600; }
 details > div { padding-top: 6px; display: flex; flex-direction: column; gap: 6px; }
 ol.rules { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
 
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 
 <div class="app" id="app">
@@ -197,7 +207,6 @@ const ICON = {
   custom: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>',
   about: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 7.5v.5"/></svg>',
   back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg>',
-  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 7H4V2M4.5 7A8 8 0 1 1 4 13"/></svg>',
 };
 
 function renderTabs() {
@@ -298,6 +307,9 @@ function renderAbout() {
     <div class="card"><h2>${STAGE[t.s]} အဆင့် ဆုတောင်း</h2>
       <label for="wish">ဤအဆင့်အတွက် ဆုတောင်းချက်<textarea id="wish" placeholder="ဆုတောင်းချက် ရေးပါ">${esc(S.wishes[t.s] || "")}</textarea></label>
       <button class="btn ghost" data-act="saveWish">သိမ်းမည်</button></div>
+    <div class="card"><h2>ပုတီး ဆက်တင်</h2>
+      <div class="stack"><span class="small muted">ရေတွက်ပုံ</span><div class="seg" role="radiogroup" aria-label="ရေတွက်ပုံ"><button role="radio" aria-checked="${mode() === "tap"}" data-mode="tap">နှိပ်၍ စိပ်မည်</button><button role="radio" aria-checked="${mode() === "swipe"}" data-mode="swipe">ပွတ်ဆွဲ၍ စိပ်မည်</button></div></div>
+      <div class="stack"><span class="small muted">ပုတီး အမျိုးအစား</span><div class="woods">${WOODS.map(w => `<button class="wood" data-wood="${w.id}" aria-pressed="${w.id === wood().id}">${beadSwatch(w, 36)}<span><b>${w.name}</b><small>${w.note}</small></span></button>`).join("")}</div></div></div>
     <div class="card"><h2>သတိပေးချက်</h2>
       <label for="rem">နေ့စဉ် သတိပေးချိန်<input id="rem" type="time" value="${S.reminder}"></label>
       <label style="flex-direction:row;align-items:center;gap:8px;color:var(--fg)" for="vegrem"><input id="vegrem" type="checkbox" style="width:auto" ${S.vegReminder ? "checked" : ""}> သက်သက်လွတ်နေ့ မတိုင်မီ တစ်ရက်အလို သတိပေးမည်</label>
@@ -320,37 +332,54 @@ function ctxData() {
   if (c.kind === "custom") { const x = S.custom.find(v => v.id === c.id); return { title: x.name, sub: x.text, eyebrow: "ကိုယ်ပိုင် ပုတီး", per: x.per, target: x.target, st: x }; }
   return { title: "အခမဲ့ ရေတွက်ရန်", sub: "", eyebrow: "ပန်းတိုင်မရှိ", per: PER, target: 0, st: S.free };
 }
+const WOODS = [
+  { id: "gold", name: "ရွှေရောင်", note: "အရောင်တောက် ပုတီး", hi: "#ffe3a1", mid: "#eba443", lo: "#8a5210", glow: "#ffbf55" },
+  { id: "sandal", name: "စန္ဒကူး", note: "အဖြူဝါနု", hi: "#f3d6a8", mid: "#c99a63", lo: "#6f4b28", glow: "#f0c78a" },
+  { id: "teak", name: "ကျွန်း", note: "ညိုဝါ", hi: "#e0a868", mid: "#a8692e", lo: "#4a2a0e", glow: "#e3a15c" },
+  { id: "padauk", name: "ပိတောက်", note: "နီညို", hi: "#e58a6f", mid: "#a3392a", lo: "#4a120c", glow: "#f07a5c" },
+  { id: "jade", name: "ကျောက်စိမ်း", note: "စိမ်းနု", hi: "#b5ecc9", mid: "#3f9a6c", lo: "#14402b", glow: "#79e0a6" },
+];
+const wood = () => WOODS.find(w => w.id === S.wood) || WOODS[0];
+const mode = () => S.mode || "tap";
+function gradDef(w, id) { return `<radialGradient id="${id}" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="${w.hi}"/><stop offset=".55" stop-color="${w.mid}"/><stop offset="1" stop-color="${w.lo}"/></radialGradient>`; }
+function beadSwatch(w, size = 34) { return `<svg width="${size}" height="${size}" viewBox="0 0 20 20" aria-hidden="true"><defs>${gradDef(w, "sw-" + w.id)}</defs><circle cx="10" cy="10" r="9" fill="url(#sw-${w.id})"/></svg>`; }
 function drawCounter() {
-  const el = document.getElementById("counter"), d = ctxData();
-  const n = d.per, R = 46, dots = [];
-  const shown = Math.min(n, 108);
+  const el = document.getElementById("counter"), d = ctxData(), w = wood();
+  const shown = Math.min(d.per, 108), R = 44, gap = 9, beads = [];
+  const br = Math.min(3.2, (Math.PI * 2 * R * (360 - gap) / 360) / shown / 2 * 0.92);
   for (let i = 0; i < shown; i++) {
-    const a = (i / shown) * Math.PI * 2 - Math.PI / 2;
-    dots.push(`<circle class="bd" data-i="${i}" cx="${(50 + R * Math.cos(a)).toFixed(2)}" cy="${(50 + R * Math.sin(a)).toFixed(2)}" r="${shown > 60 ? 1.5 : 2.4}"/>`);
+    const deg = -90 + gap / 2 + (i + 0.5) * (360 - gap) / shown, a = deg * Math.PI / 180;
+    beads.push(`<circle class="bd" data-i="${i}" cx="${(50 + R * Math.cos(a)).toFixed(2)}" cy="${(50 + R * Math.sin(a)).toFixed(2)}" r="${br.toFixed(2)}" fill="url(#bg)"/>`);
   }
+  const guru = `<g class="guru"><path d="M50 9.5 L48.6 17 M50 9.5 L50 17.6 M50 9.5 L51.4 17" stroke="${w.mid}" stroke-width=".7" stroke-linecap="round"/><circle cx="50" cy="${50 - R}" r="4" fill="url(#bg)" stroke="${w.lo}" stroke-width=".3"/><circle cx="50" cy="${50 - R}" r="1.6" fill="none" stroke="${w.hi}" stroke-width=".35" opacity=".8"/></g>`;
   el.innerHTML = `
-    <header><button class="icon-btn" data-act="close" aria-label="နောက်သို့">${ICON.back}</button><span class="small muted" style="flex:1;min-width:0">${d.eyebrow}</span><button class="icon-btn" data-act="undo" aria-label="တစ်လုံး ပြန်နုတ်မည်">${ICON.undo}</button></header>
+    <header><button class="icon-btn" data-act="close" aria-label="နောက်သို့">${ICON.back}</button><span class="small muted" style="flex:1;min-width:0">${d.eyebrow}</span><button class="icon-btn" data-act="woodSheet" aria-label="ပုတီး အမျိုးအစား ရွေးရန်">${beadSwatch(w, 26)}</button></header>
     <div class="info"><p class="guna-big" style="font-size:24px">${esc(d.title)}</p>${d.sub ? `<p class="meaning">${esc(d.sub)}</p>` : ""}</div>
-    <div class="tap" id="tap" role="button" tabindex="0" aria-label="နှိပ်၍ ရေတွက်ပါ">
-      <div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true">${dots.join("")}</svg>
+    <div class="tap" id="tap" role="button" tabindex="0" aria-label="${mode() === "tap" ? "နှိပ်၍ ရေတွက်ပါ" : "ပွတ်ဆွဲ၍ ရေတွက်ပါ"}" style="--glow:${w.glow}">
+      <div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><defs>${gradDef(w, "bg")}</defs>
+        <circle cx="50" cy="50" r="${R}" fill="none" stroke="${w.lo}" stroke-width=".5" opacity=".7"/>${beads.join("")}${guru}</svg>
         <div class="mid"><span class="num" id="num"></span><span class="muted small" id="of"></span></div></div>
-      <span class="hint">နှိပ် = တစ်လုံး · အပေါ်သို့ ပွတ်ဆွဲ = ပြန်နုတ်</span>
+      <span class="hint">${mode() === "tap" ? "စက်ဝိုင်းနေရာကို နှိပ်တိုင်း ပုတီး တစ်လုံး" : "အပေါ် (သို့) အောက်သို့ ပွတ်ဆွဲတိုင်း ပုတီး တစ်လုံး"}</span>
     </div>
-    <footer><div class="rounds" id="rounds"></div><div class="row spread small"><span id="rtext"></span><button class="link small" data-act="near">နမူနာ — ပတ်ပြည့်ခါနီးသို့</button></div></footer>`;
+    <footer>
+      <div class="seg" role="radiogroup" aria-label="ရေတွက်ပုံ"><button role="radio" aria-checked="${mode() === "tap"}" data-mode="tap">နှိပ်၍ စိပ်မည်</button><button role="radio" aria-checked="${mode() === "swipe"}" data-mode="swipe">ပွတ်ဆွဲ၍ စိပ်မည်</button></div>
+      <div class="rounds" id="rounds"></div><div class="row spread small"><span id="rtext"></span><button class="link small" data-act="near">နမူနာ — ပတ်ပြည့်ခါနီးသို့</button></div></footer>`;
   updateCounter();
   const tap = document.getElementById("tap"); let y0 = null, x0 = null;
   tap.addEventListener("pointerdown", e => { y0 = e.clientY; x0 = e.clientX; });
+  tap.addEventListener("pointercancel", () => { y0 = null; });
   tap.addEventListener("pointerup", e => {
-    if (y0 === null) return; const dy = e.clientY - y0, dx = e.clientX - x0; y0 = null;
-    if (dy < -50 && Math.abs(dy) > Math.abs(dx)) undo(); else if (Math.abs(dy) < 20 && Math.abs(dx) < 20) bump();
+    if (y0 === null) return; const dist = Math.hypot(e.clientY - y0, e.clientX - x0); y0 = null;
+    if (mode() === "tap" ? dist < 20 : dist >= 35) bump();
   });
   tap.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); bump(); } });
 }
 function updateCounter() {
   const d = ctxData(), st = d.st, shown = Math.min(d.per, 108);
   const lit = d.per > 108 ? Math.floor((st.beads / d.per) * shown) : st.beads;
-  document.querySelectorAll("#counter .bd").forEach(c => { const i = +c.dataset.i; c.classList.toggle("on", i < lit); c.classList.toggle("cur", i === lit && st.beads > 0); });
-  document.getElementById("num").textContent = mm(st.beads);
+  document.querySelectorAll("#counter .bd").forEach(c => { const i = +c.dataset.i; c.classList.toggle("on", i < lit); c.classList.toggle("cur", i === lit - 1); });
+  const num = document.getElementById("num");
+  num.textContent = mm(st.beads); num.classList.remove("pulse"); void num.offsetWidth; if (st.beads) num.classList.add("pulse");
   document.getElementById("of").textContent = `/ ${mm(d.per)}`;
   const tgt = d.target, r = document.getElementById("rounds");
   r.innerHTML = tgt ? Array.from({ length: Math.max(tgt, st.rounds) }, (_, i) => `<i class="${i < st.rounds ? "on" : ""}"></i>`).join("") : "";
@@ -367,10 +396,10 @@ function bump() {
   }
   save(); updateCounter();
 }
-function undo() {
-  const d = ctxData(), st = d.st;
-  if (st.beads > 0) st.beads--; else if (st.rounds > 0) { st.rounds--; st.beads = d.per - 1; } else return;
-  vib(8); toast("တစ်လုံး ပြန်နုတ်ပြီး"); save(); updateCounter();
+function woodSheet() {
+  sheet(`<p class="big">ပုတီး အမျိုးအစား</p><p class="small muted">မိမိနှစ်သက်သော ပုတီးကို ရွေးပါ။</p>
+    <div class="woods">${WOODS.map(w => `<button class="wood" data-wood="${w.id}" aria-pressed="${w.id === wood().id}">${beadSwatch(w, 40)}<span><b>${w.name}</b><small>${w.note}</small></span></button>`).join("")}</div>
+    <button class="btn block" data-act="sheetClose">ပြီးပြီ</button>`);
 }
 function closeCounter() { try { counterCtx && counterCtx.lock && counterCtx.lock.release(); } catch {} document.getElementById("counter")?.remove(); counterCtx = null; render(); }
 function finished() {
@@ -433,11 +462,13 @@ app.addEventListener("click", e => {
     else { S.today++; }
     save(); return render();
   }
+  if (b.dataset.mode) { S.mode = b.dataset.mode; save(); if (document.getElementById("counter")) drawCounter(); else renderAbout(); return; }
+  if (b.dataset.wood) { S.wood = b.dataset.wood; save(); closeSheet(); if (document.getElementById("counter")) drawCounter(); else renderAbout(); return; }
   switch (a) {
     case "count": return openCounter({ kind: "koza" });
     case "missed": return missedSheet();
     case "close": return closeCounter();
-    case "undo": return undo();
+    case "woodSheet": return woodSheet();
     case "near": { const d = ctxData(); d.st.beads = d.per - 1; save(); return updateCounter(); }
     case "sheetClose": return closeSheet();
     case "sheetCloseAll": closeSheet(); return closeCounter();
