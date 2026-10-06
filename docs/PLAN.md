@@ -48,8 +48,15 @@ Round / day / stage complete → History → Settings.
 | 6 | Real-device testing | Stable build |
 | 7 | Play Store: account, signing, privacy policy, closed test (12 testers × 14 days) | Published |
 
+## Decided behaviour
+- **Missed day:** warn, then let the user choose: "I recited without the app" (mark done and
+  continue), restart the current stage, or restart from day 1.
+- **What is recited:** only the day's guna, e.g. "သမ္မာသမ္ဗုဒ္ဓေါ" on every bead. The counter shows
+  that guna and its meaning.
+- **Wish per stage:** user writes a wish (ဆုတောင်း) when a stage starts. On stage completion the app
+  shows the finished stage (e.g. ပထမ အဆင့် ပြီးဆုံး), the wish again, and that stage's benefit text.
+- **Recitations in v1:** ကိုးနဝင်း is the only built-in program. Users can also create their own
+  recitations (name, text, beads per round, daily target) and use a free counter.
+
 ## Open questions
-- What happens if a ကိုးနဝင်း day is missed: restart from day 1, or restart the current stage?
-- Per bead, is only the day's guna recited (e.g. "သမ္မာသမ္ဗုဒ္ဓေါ"), or the full ဣတိပိသော?
-- Other recitations for v1 and their sources.
 - App name and final repository.
