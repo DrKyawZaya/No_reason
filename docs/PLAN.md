@@ -63,9 +63,12 @@ Round / day / stage complete → History → Settings.
   real ပုတီး through the fingers. Tap mode rolls one bead per tap; swipe mode lets the user pull the
   strand down (a long pull moves several beads). Every 108th bead is the guru bead: reaching it
   completes a round. No undo.
-- **Bead types:** user-selectable (ရွှေရောင်, စန္ဒကူး, ကျွန်း, ပိတောက်, ကျောက်စိမ်း for now; names to be
-  finalised by the owner).
+- **Bead woods by birth day (နေ့နံ):** user picks their birth day; the matching wood is recommended
+  and shown first, but any wood can be chosen. Data in `content/woods.json`:
+  တနင်္ဂနွေ ဩဇာသား/အင်ကြင်းသား · တနင်္လာ ကံ့ကော်သား · အင်္ဂါ ဇီးသား · ဗုဒ္ဓဟူး လင်းလွန်းသား ·
+  ကြာသပတေး ပိတောက်သား · သောကြာ သီးသား · စနေ ထိန်သား · ရာဟု ရင်းကိုက်သား.
+  Bead colours are approximations until checked against real beads.
 
 ## Open questions
 - Restarting a stage: wait for that stage's starting weekday, or restart the next day?
-- Final bead names; final repository name.
+- Real bead colours/photos for each wood; final repository name.

@@ -122,6 +122,10 @@ p { margin: 0; }
 .wood[aria-pressed="true"] { border: 2px solid var(--accent); }
 .wood span { display: flex; flex-direction: column; line-height: 1.5; min-width: 0; }
 .wood small { color: var(--muted); font-size: 12px; }
+.wood .tag { font-style: normal; font-size: 11px; color: var(--accent-ink); background: var(--accent); border-radius: 99px; padding: 0 8px; align-self: flex-start; line-height: 20px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { border: 1px solid var(--line); background: var(--bg); border-radius: 99px; padding: 2px 12px; font-size: 13px; min-height: 34px; }
+.chips button[aria-checked="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
 .counter footer { padding: 0 16px calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; }
 .rounds { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
 .rounds i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent); }
@@ -314,7 +318,8 @@ function renderAbout() {
       <button class="btn ghost" data-act="saveWish">သိမ်းမည်</button></div>
     <div class="card"><h2>ပုတီး ဆက်တင်</h2>
       <div class="stack"><span class="small muted">ရေတွက်ပုံ</span><div class="seg" role="radiogroup" aria-label="ရေတွက်ပုံ"><button role="radio" aria-checked="${mode() === "tap"}" data-mode="tap">နှိပ်၍ စိပ်မည်</button><button role="radio" aria-checked="${mode() === "swipe"}" data-mode="swipe">ပွတ်ဆွဲ၍ စိပ်မည်</button></div></div>
-      <div class="stack"><span class="small muted">ပုတီး အမျိုးအစား</span><div class="woods">${WOODS.map(w => `<button class="wood" data-wood="${w.id}" aria-pressed="${w.id === wood().id}">${beadSwatch(w, 36)}<span><b>${w.name}</b><small>${w.note}</small></span></button>`).join("")}</div></div></div>
+      <div class="stack"><span class="small muted">မိမိ မွေးနေ့ (နေ့နံ)</span>${birthHTML()}</div>
+      <div class="stack"><span class="small muted">ပုတီး အမျိုးအစား</span>${woodsHTML(36)}</div></div>
     <div class="card"><h2>သတိပေးချက်</h2>
       <label for="rem">နေ့စဉ် သတိပေးချိန်<input id="rem" type="time" value="${S.reminder}"></label>
       <label style="flex-direction:row;align-items:center;gap:8px;color:var(--fg)" for="vegrem"><input id="vegrem" type="checkbox" style="width:auto" ${S.vegReminder ? "checked" : ""}> သက်သက်လွတ်နေ့ မတိုင်မီ တစ်ရက်အလို သတိပေးမည်</label>
@@ -337,14 +342,28 @@ function ctxData() {
   if (c.kind === "custom") { const x = S.custom.find(v => v.id === c.id); return { title: x.name, sub: x.text, eyebrow: "ကိုယ်ပိုင် ပုတီး", per: x.per, target: x.target, st: x }; }
   return { title: "စိပ်ပုတီး (အလွတ်)", sub: "", eyebrow: "ပန်းတိုင်မရှိ", per: PER, target: 0, st: S.free };
 }
+const BIRTH = [["sun", "တနင်္ဂနွေ"], ["mon", "တနင်္လာ"], ["tue", "အင်္ဂါ"], ["wed", "ဗုဒ္ဓဟူး"], ["rahu", "ရာဟု"], ["thu", "ကြာသပတေး"], ["fri", "သောကြာ"], ["sat", "စနေ"]];
+const WOOD_NOTE = "ထိုပုတီးအသားများသည် နေ့နံဂြိုလ်များ၏ စွမ်းအင်နှင့် သဘာဝအရ သင့်လျော်သော အသားများဖြစ်ကြပြီး ပုတီးစိပ်ခြင်းဖြင့် မိမိတို့၏ ကံဇာတာ၊ ကျန်းမာရေးနှင့် စိတ်ပိုင်းဆိုင်ရာတွင် ကောင်းကျိုးချမ်းသာများ ပိုမိုရရှိနိုင်သည်ဟု ထေရဝါဒ ဗုဒ္ဓဘာသာဝင်များက ယုံကြည်ကြသည်။";
 const WOODS = [
-  { id: "gold", name: "ရွှေရောင်", note: "အရောင်တောက် ပုတီး", hi: "#ffe3a1", mid: "#eba443", lo: "#8a5210", glow: "#ffbf55" },
-  { id: "sandal", name: "စန္ဒကူး", note: "အဖြူဝါနု", hi: "#f3d6a8", mid: "#c99a63", lo: "#6f4b28", glow: "#f0c78a" },
-  { id: "teak", name: "ကျွန်း", note: "ညိုဝါ", hi: "#e0a868", mid: "#a8692e", lo: "#4a2a0e", glow: "#e3a15c" },
-  { id: "padauk", name: "ပိတောက်", note: "နီညို", hi: "#e58a6f", mid: "#a3392a", lo: "#4a120c", glow: "#f07a5c" },
-  { id: "jade", name: "ကျောက်စိမ်း", note: "စိမ်းနု", hi: "#b5ecc9", mid: "#3f9a6c", lo: "#14402b", glow: "#79e0a6" },
+  { id: "ohza", name: "ဩဇာသား", day: "sun", hi: "#ecd9a6", mid: "#c4a466", lo: "#6b5629", glow: "#f0d48a" },
+  { id: "ingyin", name: "အင်ကြင်းသား", day: "sun", hi: "#dca777", mid: "#9e6036", lo: "#4a2a15", glow: "#e5a66c" },
+  { id: "kankaw", name: "ကံ့ကော်သား", day: "mon", hi: "#c27c63", mid: "#733425", lo: "#2f120b", glow: "#d9846a" },
+  { id: "zee", name: "ဇီးသား", day: "tue", hi: "#e39c6c", mid: "#a85631", lo: "#502310", glow: "#ef9a64" },
+  { id: "linlun", name: "လင်းလွန်းသား", day: "wed", hi: "#dbb384", mid: "#9b7143", lo: "#4b331b", glow: "#e3b07a" },
+  { id: "padauk", name: "ပိတောက်သား", day: "thu", hi: "#e58a6f", mid: "#a3392a", lo: "#4a120c", glow: "#f07a5c" },
+  { id: "thee", name: "သီးသား", day: "fri", hi: "#e8c47c", mid: "#b78b3b", lo: "#5b4015", glow: "#f2c766" },
+  { id: "htein", name: "ထိန်သား", day: "sat", hi: "#eedcb7", mid: "#c4a978", lo: "#6c5732", glow: "#f1dba6" },
+  { id: "yinkaik", name: "ရင်းကိုက်သား", day: "rahu", hi: "#9a826b", mid: "#4f3a2b", lo: "#1d140d", glow: "#c09a74" },
 ];
-const wood = () => WOODS.find(w => w.id === S.wood) || WOODS[0];
+const dayName = id => (BIRTH.find(b => b[0] === id) || [, ""])[1];
+const wood = () => WOODS.find(w => w.id === S.wood) || WOODS.find(w => w.day === S.birth) || WOODS.find(w => w.id === "padauk");
+function woodsHTML(size) {
+  const list = [...WOODS].sort((a, b) => (b.day === S.birth) - (a.day === S.birth));
+  return `<div class="woods">${list.map(w => `<button class="wood" data-wood="${w.id}" aria-pressed="${w.id === wood().id}">${beadSwatch(w, size)}<span><b>${w.name}</b><small>${dayName(w.day)} နံ</small>${w.day === S.birth ? '<em class="tag">သင့်နေ့နံ</em>' : ""}</span></button>`).join("")}</div>`;
+}
+function birthHTML() {
+  return `<div class="chips" role="radiogroup" aria-label="မွေးနေ့">${BIRTH.map(([k, v]) => `<button role="radio" aria-checked="${S.birth === k}" data-birth="${k}">${v}</button>`).join("")}</div>`;
+}
 const mode = () => S.mode || "tap";
 function gradDef(w, id) { return `<radialGradient id="${id}" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="${w.hi}"/><stop offset=".55" stop-color="${w.mid}"/><stop offset="1" stop-color="${w.lo}"/></radialGradient>`; }
 function beadSwatch(w, size = 34) { return `<svg width="${size}" height="${size}" viewBox="0 0 20 20" aria-hidden="true"><defs>${gradDef(w, "sw-" + w.id)}</defs><circle cx="10" cy="10" r="9" fill="url(#sw-${w.id})"/></svg>`; }
@@ -458,8 +477,11 @@ function bump() {
   save(); updateCounter();
 }
 function woodSheet() {
-  sheet(`<p class="big">ပုတီး အမျိုးအစား</p><p class="small muted">မိမိနှစ်သက်သော ပုတီးကို ရွေးပါ။</p>
-    <div class="woods">${WOODS.map(w => `<button class="wood" data-wood="${w.id}" aria-pressed="${w.id === wood().id}">${beadSwatch(w, 40)}<span><b>${w.name}</b><small>${w.note}</small></span></button>`).join("")}</div>
+  sheet(`<p class="big">ပုတီး အမျိုးအစား</p>
+    <div class="stack"><span class="small muted">မိမိ မွေးနေ့ (နေ့နံ)</span>${birthHTML()}</div>
+    <p class="small muted">နေ့နံအလိုက် သင့်တော်သော အသားပုတီးကို ရှေ့ဆုံးတွင် ပြထားသည်။ နှစ်သက်ရာ ရွေးနိုင်သည်။</p>
+    ${woodsHTML(40)}
+    <details><summary class="small">နေ့နံအလိုက် ပုတီးအသား အကြောင်း</summary><div><p class="small muted">${WOOD_NOTE}</p></div></details>
     <button class="btn block" data-act="sheetClose">ပြီးပြီ</button>`);
 }
 function closeCounter() { try { counterCtx && counterCtx.lock && counterCtx.lock.release(); } catch {} document.getElementById("counter")?.remove(); counterCtx = null; render(); }
@@ -524,6 +546,8 @@ app.addEventListener("click", e => {
     save(); return render();
   }
   if (b.dataset.mode) { S.mode = b.dataset.mode; save(); if (document.getElementById("counter")) drawCounter(); else renderAbout(); return; }
+  if (b.dataset.birth) { S.birth = b.dataset.birth; S.wood = (WOODS.find(w => w.day === S.birth) || wood()).id; save();
+    if (document.getElementById("counter")) { drawCounter(); woodSheet(); } else renderAbout(); return; }
   if (b.dataset.wood) { S.wood = b.dataset.wood; save(); closeSheet(); if (document.getElementById("counter")) drawCounter(); else renderAbout(); return; }
   switch (a) {
     case "count": return openCounter({ kind: "koza" });

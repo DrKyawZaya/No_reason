@@ -1,0 +1,148 @@
+{
+  "title": "နေ့နံအလိုက် သင့်တော်သော ၁၀၈ လုံး အသားပုတီးများ",
+  "note": "ထိုပုတီးအသားများသည် နေ့နံဂြိုလ်များ၏ စွမ်းအင်နှင့် သဘာဝအရ သင့်လျော်သော အသားများဖြစ်ကြပြီး ပုတီးစိပ်ခြင်းဖြင့် မိမိတို့၏ ကံဇာတာ၊ ကျန်းမာရေးနှင့် စိတ်ပိုင်းဆိုင်ရာတွင် ကောင်းကျိုးချမ်းသာများ ပိုမိုရရှိနိုင်သည်ဟု ထေရဝါဒ ဗုဒ္ဓဘာသာဝင်များက ယုံကြည်ကြသည်။",
+  "birthDays": [
+    {
+      "id": "sun",
+      "name": "တနင်္ဂနွေ"
+    },
+    {
+      "id": "mon",
+      "name": "တနင်္လာ"
+    },
+    {
+      "id": "tue",
+      "name": "အင်္ဂါ"
+    },
+    {
+      "id": "wed",
+      "name": "ဗုဒ္ဓဟူး"
+    },
+    {
+      "id": "rahu",
+      "name": "ရာဟု"
+    },
+    {
+      "id": "thu",
+      "name": "ကြာသပတေး"
+    },
+    {
+      "id": "fri",
+      "name": "သောကြာ"
+    },
+    {
+      "id": "sat",
+      "name": "စနေ"
+    }
+  ],
+  "woods": [
+    {
+      "id": "ohza",
+      "name": "ဩဇာသား",
+      "day": "sun",
+      "colors": {
+        "hi": "#ecd9a6",
+        "mid": "#c4a466",
+        "lo": "#6b5629",
+        "glow": "#f0d48a"
+      },
+      "colorsAreApproximate": true
+    },
+    {
+      "id": "ingyin",
+      "name": "အင်ကြင်းသား",
+      "day": "sun",
+      "colors": {
+        "hi": "#dca777",
+        "mid": "#9e6036",
+        "lo": "#4a2a15",
+        "glow": "#e5a66c"
+      },
+      "colorsAreApproximate": true
+    },
+    {
+      "id": "kankaw",
+      "name": "ကံ့ကော်သား",
+      "day": "mon",
+      "colors": {
+        "hi": "#c27c63",
+        "mid": "#733425",
+        "lo": "#2f120b",
+        "glow": "#d9846a"
+      },
+      "colorsAreApproximate": true
+    },
+    {
+      "id": "zee",
+      "name": "ဇီးသား",
+      "day": "tue",
+      "colors": {
+        "hi": "#e39c6c",
+        "mid": "#a85631",
+        "lo": "#502310",
+        "glow": "#ef9a64"
+      },
+      "colorsAreApproximate": true
+    },
+    {
+      "id": "linlun",
+      "name": "လင်းလွန်းသား",
+      "day": "wed",
+      "colors": {
+        "hi": "#dbb384",
+        "mid": "#9b7143",
+        "lo": "#4b331b",
+        "glow": "#e3b07a"
+      },
+      "colorsAreApproximate": true
+    },
+    {
+      "id": "padauk",
+      "name": "ပိတောက်သား",
+      "day": "thu",
+      "colors": {
+        "hi": "#e58a6f",
+        "mid": "#a3392a",
+        "lo": "#4a120c",
+        "glow": "#f07a5c"
+      },
+      "colorsAreApproximate": true
+    },
+    {
+      "id": "thee",
+      "name": "သီးသား",
+      "day": "fri",
+      "colors": {
+        "hi": "#e8c47c",
+        "mid": "#b78b3b",
+        "lo": "#5b4015",
+        "glow": "#f2c766"
+      },
+      "colorsAreApproximate": true
+    },
+    {
+      "id": "htein",
+      "name": "ထိန်သား",
+      "day": "sat",
+      "colors": {
+        "hi": "#eedcb7",
+        "mid": "#c4a978",
+        "lo": "#6c5732",
+        "glow": "#f1dba6"
+      },
+      "colorsAreApproximate": true
+    },
+    {
+      "id": "yinkaik",
+      "name": "ရင်းကိုက်သား",
+      "day": "rahu",
+      "colors": {
+        "hi": "#9a826b",
+        "mid": "#4f3a2b",
+        "lo": "#1d140d",
+        "glow": "#c09a74"
+      },
+      "colorsAreApproximate": true
+    }
+  ]
+}
