@@ -56,7 +56,7 @@ Round / day / stage complete → History → Settings.
 - **Wish per stage:** user writes a wish (ဆုတောင်း) when a stage starts. On stage completion the app
   shows the finished stage (e.g. ပထမ အဆင့် ပြီးဆုံး), the wish again, and that stage's benefit text.
 - **Recitations in v1:** ကိုးနဝင်း is the only built-in program. Users can also create their own
-  recitations (name, text, beads per round, daily target) and use a free counter.
+  recitations (name, text, beads per round, daily target) and use a free counter, labelled "စိပ်ပုတီး (အလွတ်)".
 
 ## Open questions
 - App name and final repository.

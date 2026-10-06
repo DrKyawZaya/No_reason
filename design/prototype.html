@@ -247,7 +247,7 @@ function renderHome() {
     ${nxt && nxt.veg ? `<div class="card"><div class="row"><span class="pill veg">သတိပေးချက်</span></div><p>မနက်ဖြန် (${nxt.wd}) သည် သက်သက်လွတ် စားရမည့်နေ့ ဖြစ်ပါသည်။</p></div>` : ""}
     <div class="card"><div class="row spread"><h2>ကိုယ်ပိုင် ပုတီး</h2><button class="link small" data-tab-go="custom">အားလုံး</button></div>
       <div>${S.custom.map(c => `<div class="list-item"><div class="grow"><div class="title">${esc(c.name)}</div><div class="small muted">${mm(c.rounds)} / ${mm(c.target)} ပတ်</div></div><button class="btn ghost" data-count-custom="${c.id}">စိပ်မည်</button></div>`).join("")}
-      <div class="list-item"><div class="grow"><div class="title">အခမဲ့ ရေတွက်ရန်</div><div class="small muted">ပန်းတိုင်မရှိ · ${mm(S.free.rounds)} ပတ်</div></div><button class="btn ghost" data-count-free>စိပ်မည်</button></div></div>
+      <div class="list-item"><div class="grow"><div class="title">စိပ်ပုတီး (အလွတ်)</div><div class="small muted">ပန်းတိုင်မရှိ · ${mm(S.free.rounds)} ပတ်</div></div><button class="btn ghost" data-count-free>စိပ်မည်</button></div></div>
     </div>
     <div class="card"><div class="row spread"><span>နေ့စဉ် သတိပေးချိန်</span><strong>${mm(S.reminder.replace(":", ":"))}</strong></div></div>
     ${demoBox()}`;
@@ -283,7 +283,7 @@ function renderCustom() {
   main.innerHTML = `
     <h1>ကိုယ်ပိုင် ပုတီး</h1>
     <div class="card">${S.custom.length ? S.custom.map(c => `<div class="list-item"><div class="grow"><div class="title">${esc(c.name)}</div><div class="small muted">${esc(c.text)}</div><div class="small muted">တစ်ပတ် ${mm(c.per)} လုံး · နေ့စဉ် ${mm(c.target)} ပတ် · ယနေ့ ${mm(c.rounds)} ပတ်</div></div><div class="stack"><button class="btn ghost" data-count-custom="${c.id}">စိပ်မည်</button><button class="link small" data-del="${c.id}">ဖျက်မည်</button></div></div>`).join("") : '<p class="muted">ကိုယ်ပိုင် ပုတီး မရှိသေးပါ။ အောက်တွင် ထည့်ပါ။</p>'}
-      <div class="list-item"><div class="grow"><div class="title">အခမဲ့ ရေတွက်ရန်</div><div class="small muted">ပန်းတိုင်မရှိ၊ ပတ်ရေသာ ရေတွက်သည်</div></div><button class="btn ghost" data-count-free>စိပ်မည်</button></div></div>
+      <div class="list-item"><div class="grow"><div class="title">စိပ်ပုတီး (အလွတ်)</div><div class="small muted">ပန်းတိုင်မရှိ၊ ပတ်ရေသာ ရေတွက်သည်</div></div><button class="btn ghost" data-count-free>စိပ်မည်</button></div></div>
     <form class="card" id="newForm"><h2>အသစ် ထည့်မည်</h2>
       <label for="f-name">အမည်<input id="f-name" required placeholder="ဥပမာ - မေတ္တာပို့"></label>
       <label for="f-text">ရွတ်ဆိုရမည့် စာ<textarea id="f-text" placeholder="ပုတီးတစ်လုံးလျှင် ရွတ်ဆိုမည့်စာ"></textarea></label>
@@ -330,7 +330,7 @@ function ctxData() {
   const c = counterCtx;
   if (c.kind === "koza") { const t = info(S.today), p = todayProg(); return { title: GUNA[t.g][0], sub: GUNA[t.g][1], eyebrow: `ကိုးနဝင်း · ${STAGE[t.s]} အဆင့် · ရက် ${mm(t.d + 1)}`, per: PER, target: t.rounds, st: p }; }
   if (c.kind === "custom") { const x = S.custom.find(v => v.id === c.id); return { title: x.name, sub: x.text, eyebrow: "ကိုယ်ပိုင် ပုတီး", per: x.per, target: x.target, st: x }; }
-  return { title: "အခမဲ့ ရေတွက်ရန်", sub: "", eyebrow: "ပန်းတိုင်မရှိ", per: PER, target: 0, st: S.free };
+  return { title: "စိပ်ပုတီး (အလွတ်)", sub: "", eyebrow: "ပန်းတိုင်မရှိ", per: PER, target: 0, st: S.free };
 }
 const WOODS = [
   { id: "gold", name: "ရွှေရောင်", note: "အရောင်တောက် ပုတီး", hi: "#ffe3a1", mid: "#eba443", lo: "#8a5210", glow: "#ffbf55" },
