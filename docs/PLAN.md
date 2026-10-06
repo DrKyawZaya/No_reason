@@ -42,7 +42,7 @@ Round / day / stage complete → History → Settings.
 | 0 | Decisions: name, repo, content rules | This plan |
 | 1 | UX: flow, clickable prototype, Canva mockups | Approved design |
 | 2 | Content: ကိုးနဝင်း (done, pending review) + other recitations | `content/*.json` |
-| 3 | Android project + counter screen | Working `.apk` |
+| 3 | Android project + counter screen (**first build done**: `android/`) | Working `.apk` |
 | 4 | Recitations, programs, custom recitations | Core features |
 | 5 | Reminders, history, settings | Beta |
 | 6 | Real-device testing | Stable build |
@@ -72,3 +72,9 @@ Round / day / stage complete → History → Settings.
 ## Open questions
 - Restarting a stage: wait for that stage's starting weekday, or restart the next day?
 - Real bead colours/photos for each wood; final repository name.
+
+## Android project (`android/`)
+- Kotlin + Jetpack Compose, AGP 9.4, Gradle 9.8 wrapper, compileSdk 37, targetSdk 36, minSdk 24.
+- `applicationId` is `com.satepadee.app` (placeholder; cannot change after the first Play Store upload).
+- Content JSON in `content/` is packaged as app assets.
+- Build: `cd android && ./gradlew testDebugUnitTest assembleDebug` (needs `ANDROID_HOME`).

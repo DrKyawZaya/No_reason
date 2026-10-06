@@ -1,0 +1,204 @@
+package com.satepadee.app.ui
+
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.satepadee.app.data.AppModel
+import com.satepadee.app.data.CountMode
+import com.satepadee.app.data.CountResult
+import com.satepadee.app.data.Kozawin
+import com.satepadee.app.data.Mm
+import com.satepadee.app.data.Target
+import kotlinx.coroutines.launch
+
+@Composable
+fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val haptics = remember { Haptics(context) }
+    val view = LocalView.current
+    DisposableEffect(Unit) { view.keepScreenOn = true; onDispose { view.keepScreenOn = false } }
+
+    val day = if (target == Target.Kozawin) model.todayDay() else null
+    val progress = model.progressFor(target)
+    val per = model.beadsPerRound(target)
+    val goal = model.targetRounds(target)
+    val wood = model.wood()
+    val mode = model.state.mode
+    var sheet by remember { mutableStateOf(false) }
+    var finished by remember { mutableStateOf<CountResult?>(null) }
+    var finishedDay by remember { mutableStateOf<Int?>(null) }
+
+    val phase = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+    val total = progress.rounds * per + progress.beads
+
+    fun countOne() {
+        val dayIndex = day?.index
+        val r = model.count(target)
+        if (r == CountResult.Bead) haptics.tick() else haptics.round()
+        if (r == CountResult.DayDone || r == CountResult.StageDone || r == CountResult.ProgramDone) {
+            finished = r; finishedDay = dayIndex
+        }
+    }
+
+    Column(Modifier.fillMaxSize().background(Palette.bg).safeDrawingPadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(
+                Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(Palette.surface).border(1.dp, Palette.line, RoundedCornerShape(12.dp))
+                    .clickable(role = Role.Button, onClick = onBack).semantics { contentDescription = "နောက်သို့" },
+                contentAlignment = Alignment.Center,
+            ) { BackIcon() }
+            Text(
+                if (day != null) "${model.content.kozawinName} · ${Mm.STAGES[day.stage]} အဆင့် · ရက် ${Mm.n(day.index + 1)}" else "ပန်းတိုင်မရှိ",
+                style = Type.small.copy(color = Palette.muted), modifier = Modifier.weight(1f),
+            )
+            Box(
+                Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(Palette.surface).border(1.dp, Palette.line, RoundedCornerShape(12.dp))
+                    .clickable(role = Role.Button) { sheet = true }.semantics { contentDescription = "ပုတီး အမျိုးအစား ရွေးရန်" },
+                contentAlignment = Alignment.Center,
+            ) { BeadSwatch(wood, Modifier.size(26.dp)) }
+        }
+
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            if (day != null) {
+                val g = model.content.guna(day.guna)
+                Text(g.pali, style = Type.guna.copy(color = Palette.accent), textAlign = TextAlign.Center)
+                Text(g.meaning.first(), style = Type.small.copy(color = Palette.muted), textAlign = TextAlign.Center)
+            } else {
+                Text("စိပ်ပုတီး (အလွတ်)", style = Type.guna.copy(color = Palette.accent))
+            }
+        }
+
+        // Counting area: the whole box is the target for taps or swipes.
+        Row(
+            Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(24.dp))
+                .background(Brush.radialGradient(listOf(Palette.surface, Palette.bg)))
+                .border(1.dp, Palette.line, RoundedCornerShape(24.dp))
+                .semantics {
+                    contentDescription = if (mode == CountMode.Tap) "နှိပ်၍ ရေတွက်ပါ" else "အောက်သို့ ပွတ်ဆွဲ၍ ရေတွက်ပါ"
+                    onClick { countOne(); true }
+                }
+                .pointerInput(mode, target) {
+                    if (mode == CountMode.Tap) {
+                        detectTapGestures(onTap = {
+                            countOne()
+                            scope.launch { phase.snapTo((phase.value - 1f).coerceAtLeast(-3f)); phase.animateTo(0f, spring(dampingRatio = 0.85f, stiffness = 320f)) }
+                        })
+                    } else {
+                        var drag = 0f
+                        detectVerticalDragGestures(
+                            onDragStart = { drag = phase.value.coerceAtLeast(0f) },
+                            onDragEnd = {
+                                scope.launch {
+                                    if (phase.value > 0.35f) { countOne(); phase.snapTo(phase.value - 1f) }
+                                    phase.animateTo(0f, spring(dampingRatio = 0.85f, stiffness = 320f))
+                                }
+                            },
+                            onDragCancel = { scope.launch { phase.animateTo(0f) } },
+                            onVerticalDrag = { change, dy ->
+                                change.consume()
+                                val sp = strandSpacing(size.height.toFloat(), 76.dp.toPx())
+                                drag = (drag + dy / sp).coerceAtLeast(0f)
+                                while (drag >= 1f) { countOne(); drag -= 1f } // a long pull moves several beads
+                                scope.launch { phase.snapTo(drag) }
+                            },
+                        )
+                    }
+                },
+        ) {
+            BeadStrand(wood, total, { phase.value }, per, Modifier.weight(0.62f).fillMaxHeight())
+            Column(Modifier.weight(0.38f).fillMaxHeight(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(Mm.n(progress.beads), style = Type.count.copy(color = Palette.accent))
+                Text("/ ${Mm.n(per)}", style = Type.body.copy(color = Palette.muted))
+                Spacer(Modifier.size(6.dp))
+                ProgressBar(progress.beads / per.toFloat(), Modifier.width(80.dp))
+                Spacer(Modifier.size(10.dp))
+                Text(
+                    if (mode == CountMode.Tap) "နှိပ်တိုင်း ပုတီး တစ်လုံး ရွေ့သည်" else "အောက်သို့ ပွတ်ဆွဲ၍ ပုတီးကို ဆွဲချပါ",
+                    style = Type.tiny.copy(color = Palette.muted), textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 8.dp),
+                )
+            }
+        }
+
+        ModeSwitch(mode) { model.setMode(it) }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
+            if (goal > 0) {
+                repeat(maxOf(goal, progress.rounds)) { i ->
+                    Box(Modifier.size(14.dp).clip(CircleShape).border(2.dp, Palette.accent, CircleShape).background(if (i < progress.rounds) Palette.accent else Palette.bg))
+                }
+                Text("  ${Mm.n(progress.rounds)} / ${Mm.n(goal)} ပတ်", style = Type.small.copy(color = Palette.muted))
+            } else {
+                Text("${Mm.n(progress.rounds)} ပတ်", style = Type.small.copy(color = Palette.muted))
+            }
+        }
+    }
+
+    if (sheet) WoodSheet(model) { sheet = false }
+    finished?.let { r ->
+        val idx = finishedDay ?: 0
+        FinishedDialog(model, r, Kozawin.day(idx), onClose = { finished = null; onBack() })
+    }
+}
+
+/** Short tick per bead, a stronger pattern at the end of a round. */
+class Haptics(context: Context) {
+    private val vibrator: Vibrator? = if (Build.VERSION.SDK_INT >= 31) {
+        context.getSystemService(VibratorManager::class.java)?.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION") context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+    }
+
+    fun tick() = vibrate(longArrayOf(0, 15))
+    fun round() = vibrate(longArrayOf(0, 60, 60, 200))
+
+    private fun vibrate(pattern: LongArray) {
+        val v = vibrator ?: return
+        if (!v.hasVibrator()) return
+        if (Build.VERSION.SDK_INT >= 26) v.vibrate(VibrationEffect.createWaveform(pattern, -1))
+        else @Suppress("DEPRECATION") v.vibrate(pattern, -1)
+    }
+}
