@@ -1,4 +1,4 @@
-# စိပ်ပုတီး app — Plan
+# စိပ်ပုတီး — Plan
 
 Android prayer-bead (ပုတီး) counter for Myanmar Buddhists. Myanmar-only UI, fully offline,
 to be published on Google Play.
@@ -58,5 +58,14 @@ Round / day / stage complete → History → Settings.
 - **Recitations in v1:** ကိုးနဝင်း is the only built-in program. Users can also create their own
   recitations (name, text, beads per round, daily target) and use a free counter, labelled "စိပ်ပုတီး (အလွတ်)".
 
+- **App name:** စိပ်ပုတီး.
+- **Counter visual:** a close-up strand of large beads that rolls one bead per count, like pulling a
+  real ပုတီး through the fingers. Tap mode rolls one bead per tap; swipe mode lets the user pull the
+  strand down (a long pull moves several beads). Every 108th bead is the guru bead: reaching it
+  completes a round. No undo.
+- **Bead types:** user-selectable (ရွှေရောင်, စန္ဒကူး, ကျွန်း, ပိတောက်, ကျောက်စိမ်း for now; names to be
+  finalised by the owner).
+
 ## Open questions
-- App name and final repository.
+- Restarting a stage: wait for that stage's starting weekday, or restart the next day?
+- Final bead names; final repository name.
