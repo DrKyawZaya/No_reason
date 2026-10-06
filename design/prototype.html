@@ -1,0 +1,455 @@
+<title>စိပ်ပုတီး Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;600;700&family=Noto+Serif+Myanmar:wght@500;700&display=swap">
+<style>
+/* Layout: one phone-width column, scrolling content above a fixed tab bar; the counter takes the whole screen. */
+:root {
+  --bg: #f3ece1; --surface: #fffaf2; --sunk: #e9dfcf; --fg: #2a1c10; --muted: #7a6550;
+  --line: #dccdb6; --accent: #b4630c; --accent-ink: #fffaf2; --accent-soft: #f1dcbc;
+  --jade: #2d7a4c; --jade-soft: #d6eadb; --warn: #b5452b; --warn-soft: #f4d9cf;
+  --bead: #d9c8ae;
+  --f-display: "Noto Serif Myanmar", "Padauk", "Myanmar Text", serif;
+  --f-body: "Noto Sans Myanmar", "Padauk", "Myanmar Text", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #16110c; --surface: #211912; --sunk: #2b2118; --fg: #f2e5d1; --muted: #b29c80;
+  --line: #3b2e22; --accent: #eba443; --accent-ink: #1a120a; --accent-soft: #4a3317;
+  --jade: #6cc08b; --jade-soft: #1f3a29; --warn: #e88a6f; --warn-soft: #43231a;
+  --bead: #4a3a2b; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #16110c; --surface: #211912; --sunk: #2b2118; --fg: #f2e5d1; --muted: #b29c80;
+  --line: #3b2e22; --accent: #eba443; --accent-ink: #1a120a; --accent-soft: #4a3317;
+  --jade: #6cc08b; --jade-soft: #1f3a29; --warn: #e88a6f; --warn-soft: #43231a;
+  --bead: #4a3a2b; color-scheme: dark; }
+
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.75; }
+* { box-sizing: border-box; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { max-width: 440px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; position: relative; }
+main { flex: 1; overflow-y: auto; padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 16px; }
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); background: var(--surface); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.tabs button { background: none; border: 0; padding: 10px 4px 8px; font-size: 13px; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.tabs button[aria-current="page"] { color: var(--accent); font-weight: 600; }
+.tabs svg { width: 22px; height: 22px; }
+
+h1 { font-family: var(--f-display); font-size: 22px; margin: 0; line-height: 1.6; text-wrap: balance; }
+h2 { font-size: 16px; margin: 0; line-height: 1.6; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.spread { justify-content: space-between; }
+.stack { display: flex; flex-direction: column; gap: 8px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.today { border-color: var(--accent); }
+.eyebrow { font-size: 13px; color: var(--muted); letter-spacing: .02em; }
+.guna-big { font-family: var(--f-display); font-size: 28px; line-height: 1.7; color: var(--accent); text-wrap: balance; }
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; border-radius: 999px; font-size: 13px; line-height: 26px; background: var(--sunk); color: var(--fg); }
+.pill.veg { background: var(--jade-soft); color: var(--jade); font-weight: 600; }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.bar { height: 8px; background: var(--sunk); border-radius: 99px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.stage-dots { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; }
+.stage-dots i { height: 6px; border-radius: 3px; background: var(--sunk); }
+.stage-dots i.on { background: var(--accent); }
+.stage-dots i.now { background: var(--accent-soft); outline: 1px solid var(--accent); }
+
+.btn { border: 0; border-radius: 12px; padding: 10px 16px; background: var(--accent); color: var(--accent-ink); font-weight: 600; min-height: 46px; }
+.btn.ghost { background: var(--sunk); color: var(--fg); font-weight: 400; }
+.btn.line { background: none; border: 1px solid var(--line); color: var(--fg); font-weight: 400; }
+.btn.block { width: 100%; }
+.link { background: none; border: 0; color: var(--accent); padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+
+.list-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.list-item:first-of-type { border-top: 0; }
+.list-item .grow { flex: 1; min-width: 0; }
+.list-item .title { font-weight: 600; }
+
+.demo { border: 1px dashed var(--line); border-radius: 14px; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.demo .btn { min-height: 38px; padding: 6px 12px; font-size: 13px; }
+
+/* Chart (9 x 9), mirrors the printed card */
+.chart-wrap { overflow-x: auto; }
+.chart { display: grid; grid-template-columns: 56px repeat(9, minmax(30px, 1fr)); gap: 3px; min-width: 340px; font-variant-numeric: tabular-nums; }
+.chart .rh { font-size: 12px; color: var(--muted); display: flex; align-items: center; line-height: 1.3; }
+.cell { aspect-ratio: 1 / 1.25; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0; line-height: 1.2; }
+.cell b { font-size: 16px; font-family: var(--f-display); }
+.cell small { font-size: 9.5px; color: var(--muted); }
+.cell.veg { background: var(--jade-soft); }
+.cell.done { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.cell.done small { color: var(--accent-ink); opacity: .8; }
+.cell.missed { border: 2px solid var(--warn); }
+.cell.now { outline: 2px solid var(--fg); outline-offset: 1px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line); display: inline-block; }
+
+/* Counter */
+.counter { position: absolute; inset: 0; background: var(--bg); display: flex; flex-direction: column; z-index: 5; }
+.counter header { display: flex; align-items: center; gap: 8px; padding: 12px 16px 0; }
+.icon-btn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; }
+.icon-btn svg { width: 22px; height: 22px; }
+.counter .info { padding: 8px 16px 0; text-align: center; display: flex; flex-direction: column; gap: 2px; }
+.counter .meaning { font-size: 13px; color: var(--muted); max-width: 34ch; margin: 0 auto; }
+.tap { flex: 1; margin: 12px 16px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); touch-action: none; user-select: none; -webkit-user-select: none; position: relative; display: grid; place-items: center; min-height: 300px; }
+.tap:active { background: var(--sunk); }
+.ring { width: min(78vw, 300px); max-width: 100%; aspect-ratio: 1; position: relative; }
+.ring svg { width: 100%; height: 100%; display: block; }
+.ring .bd { fill: var(--bead); transition: fill .12s; }
+.ring .bd.on { fill: var(--accent); }
+.ring .bd.cur { fill: var(--fg); }
+.ring .mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+.ring .num { font-family: var(--f-display); font-size: 56px; line-height: 1.3; font-weight: 700; }
+.tap .hint { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-size: 12px; color: var(--muted); pointer-events: none; }
+.counter footer { padding: 0 16px calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; }
+.rounds { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+.rounds i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent); }
+.rounds i.on { background: var(--accent); }
+
+/* Sheet */
+.scrim { position: absolute; inset: 0; background: rgb(0 0 0 / .45); z-index: 10; display: flex; align-items: flex-end; }
+.sheet { background: var(--surface); width: 100%; border-radius: 20px 20px 0 0; padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 12px; max-height: 92%; overflow-y: auto; }
+.sheet .big { font-family: var(--f-display); font-size: 24px; color: var(--accent); line-height: 1.6; text-wrap: balance; }
+.quote { background: var(--sunk); border-radius: 12px; padding: 12px 14px; }
+.toast { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 8px 16px; border-radius: 999px; font-size: 14px; z-index: 20; white-space: nowrap; }
+
+label { font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+input, textarea { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 15px; width: 100%; }
+textarea { min-height: 72px; resize: vertical; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+details { border-top: 1px solid var(--line); padding: 10px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details > div { padding-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+ol.rules { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app" id="app">
+  <main id="main"></main>
+  <nav class="tabs" id="tabs"></nav>
+</div>
+
+<script>
+const BASE = [2, 9, 4, 7, 5, 3, 6, 1, 8];
+const WD = ["တနင်္လာ", "အင်္ဂါ", "ဗုဒ္ဓဟူး", "ကြာသပတေး", "သောကြာ", "စနေ", "တနင်္ဂနွေ"];
+const STAGE = ["ပထမ", "ဒုတိယ", "တတိယ", "စတုတ္ထ", "ပဉ္စမ", "ဆဋ္ဌမ", "သတ္တမ", "အဋ္ဌမ", "နဝမ"];
+const GUNA = [null,
+  ["အရဟံ", "လူ၊ နတ်၊ ဗြဟ္မာ သတ္တဝါအားလုံးတို့၏ ပူဇော်အထူးကို ခံယူတော်မူထိုက်သော မြတ်စွာဘုရား"],
+  ["သမ္မာသမ္ဗုဒ္ဓေါ", "သိစရာအားလုံးတို့ကို အမှန်အတိုင်း ကိုယ်ပိုင်ဉာဏ်ဖြင့် သိတော်မူသော မြတ်စွာဘုရား"],
+  ["ဝိဇ္ဇာစရဏသမ္ပန္နော", "အသိဉာဏ်ရော အကျင့်ပါ ပြည့်စုံတော်မူသော မြတ်စွာဘုရား"],
+  ["သုဂတော", "ကောင်းသောစကားကို ဆိုတော်မူသော မြတ်စွာဘုရား"],
+  ["လောကဝိဒူ", "လောကသုံးပါးကို သိတော်မူသော မြတ်စွာဘုရား"],
+  ["အနုတ္တရော ပုရိသဒမ္မသာရထိ", "ဆုံးမထိုက်သော သတ္တဝါတို့ကို အတုမရှိ ဆုံးမတော်မူတတ်သော မြတ်စွာဘုရား"],
+  ["သတ္ထာ ဒေဝမနုဿာနံ", "လူ၊ နတ်၊ ဗြဟ္မာ သတ္တဝါအားလုံးတို့၏ ဆရာတစ်ဆူ ဖြစ်တော်မူသော မြတ်စွာဘုရား"],
+  ["ဗုဒ္ဓေါ", "သစ္စာလေးပါးကို ကိုယ်တိုင်သိတော်မူ၊ သူတစ်ပါးကိုလည်း သိအောင် ဟောတော်မူတတ်သော မြတ်စွာဘုရား"],
+  ["ဘဂဝါ", "ဘုန်းတော်ခြောက်ပါးနှင့် ပြည့်စုံတော်မူသော မြတ်စွာဘုရား"],
+];
+const BENEFIT = [
+  "ငွေကြေးအပေးအယူကိစ္စ၊ ခရီးနှင့်ပတ်သက်သည့်ကိစ္စ၊ ပညာရေးနှင့်ပတ်သက်သည့်ကိစ္စ၊ မိမိ၏ အသိဉာဏ်များ ပွင့်လင်းခြင်း၊ ဆုံးဖြတ်ချက် ခိုင်မာသွားခြင်းများ မုချကြုံရမည်။",
+  "ရာထူးနှင့်ပတ်သက်သည့်ကိစ္စ၊ စီးပွားတိုးတက်ခြင်းကိစ္စ၊ မြေ၊ သစ်ပင်၊ သစ်တော၊ ကလေးမွေးဖွားခြင်း၊ အလှအပ၊ လက်ဝတ်ရတနာ၊ ခက်ခဲကြန့်ကြာမှုများ၊ အတိုက်အခံဖြစ်မှုများနှင့် ပတ်သက်သည့်ကိစ္စများ မုချအောင်မြင်သွားမည်။",
+  "အမှုအခင်း၊ အချုပ်အနှောင်၊ အထက်လူကြီးနှင့် ပတ်သက်၍ ကိုယ်စိတ်ဆင်းရဲခြင်းမှ လွတ်မြောက် တားဆီးနိုင်ခြင်း။",
+  "ကြွယ်ဝချမ်းသာခြင်း၊ အမှန်အကန်ဖြစ်စေလိုခြင်း၊ မိတ်ဆွေတိုးပွားခြင်း၊ ညီညွတ်စေလိုခြင်းကိစ္စများ မုချအောင်မြင်မည်။",
+  "အချစ်ရေးကိစ္စ၊ စေ့စပ်ကြောင်းလမ်း မင်္ဂလာကိစ္စ၊ မြတ်နိုးစေချင်သောကိစ္စ၊ လင်ကွဲမယားကွဲကိစ္စ၊ ဖောက်ပြန်ခြင်းကိစ္စ၊ ဒုက္ခဖြစ်နေခြင်းမှ ကျော်လွှားနိုင်ခြင်း။",
+  "အတိုက်အခံကိစ္စ၊ ယာဉ်ရထားကိစ္စ၊ စိန်ခေါ်ယှဉ်ပြိုင်ခြင်းကိစ္စ၊ ပင်လယ်ရပ်ခြားကိစ္စများ ခက်ခဲနေပါက မုချအောင်မြင်ခြင်း။",
+  "မိန်းမအနှောင့်အယှက်ကိစ္စ၊ မိမိကိုယ်ကို ယုံကြည်စေလိုခြင်းကိစ္စ၊ မြဲမြဲခိုင်မာစေလိုသောကိစ္စ၊ အာမခံကိစ္စ အောင်မြင်သွားပါလိမ့်မည်။",
+  "အားသွန်ခွန်စိုက် လုပ်ရမည့်ကိစ္စများ အလွယ်တကူ ပြီးဆုံးခြင်း၊ အလှူအတန်း၊ ဘုရားဖူး၊ အဓိဋ္ဌာန်ကျင့်စဉ်နှင့် ပတ်သက်ခြင်းကိစ္စ၊ မကောင်းသော အတတ်နှင့် ပြုစားခြင်းများ ပပျောက်စေခြင်း။",
+  "အလိမ်ခံရခြင်း၊ လိမ်လည်သူဟု စွပ်စွဲခံရခြင်း၊ အသစ်ဖြစ်စေလိုခြင်း၊ နာမည်ကြီးခြင်း၊ လူသိများခြင်းကိစ္စများ မုချအောင်မြင်သွားပါလိမ့်မည်။",
+];
+const RULES = [
+  "တနင်္လာနေ့မှ စတင်ရမည်။ (မည်သည့်နေ့ မွေးဖွားသူမဆို)",
+  "အဓိဋ္ဌာန် ၉ ဆင့်၊ တစ်ဆင့်လျှင် ၉ ရက်၊ စုစုပေါင်း ၈၁ ရက် မပျက်မကွက် ဝင်ရမည်။",
+  "တစ်ဆင့်လျှင် အရေးအကြီးဆုံး ဆုတောင်းချက် တစ်ခု ထားနိုင်သည်။",
+  "ယနေ့ ဂုဏ်တော်ကိုသာ ပုတီးတစ်လုံးလျှင် တစ်ကြိမ် ရွတ်ရမည်။ ဂုဏ်တော် အမှတ်စဉ်အတိုင်း ပတ်ရေ စိပ်ရမည်။ (၁ ကျလျှင် ၁ ပတ်၊ ၂ ကျလျှင် ၂ ပတ်)",
+  "အဆင့်တစ်ဆင့်၏ အလယ်ရက် (အစိမ်းရောင်) တွင် သက်သက်လွတ် စားရမည်။",
+];
+const PER = 108;
+
+const mm = n => String(n).replace(/\d/g, d => "၀၁၂၃၄၅၆၇၈၉"[d]);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function info(d) { const s = Math.floor(d / 9), p = d % 9, g = (BASE[p] - 1 + s) % 9 + 1; return { d, s, p, g, rounds: g, veg: p === 4, wd: WD[d % 7] }; }
+
+const KEY = "satepadee-proto-v1";
+function seed() {
+  return {
+    today: 8, done: [0, 1, 2, 3, 4, 5, 6, 7], wishes: { 0: "မိသားစု ကျန်းမာ ချမ်းသာပါစေ" },
+    prog: { day: 8, beads: 40, rounds: 5 }, reminder: "05:30", vegReminder: true, missedSeen: -1,
+    custom: [{ id: "c1", name: "မေတ္တာပို့", text: "သဗ္ဗေ သတ္တာ အဝေရာ ဟောန္တု", per: 108, target: 3, beads: 0, rounds: 0 }],
+    free: { beads: 0, rounds: 0 },
+  };
+}
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch { S = seed(); }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
+
+let tab = "home", counterCtx = null;
+const main = document.getElementById("main"), tabsEl = document.getElementById("tabs"), app = document.getElementById("app");
+
+const ICON = {
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>',
+  chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.6h16M9.3 4v16M14.6 4v16"/></svg>',
+  custom: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>',
+  about: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 7.5v.5"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 7H4V2M4.5 7A8 8 0 1 1 4 13"/></svg>',
+};
+
+function renderTabs() {
+  const items = [["home", "ယနေ့"], ["chart", "ဇယား"], ["custom", "ကိုယ်ပိုင်"], ["about", "အကြောင်း"]];
+  tabsEl.innerHTML = items.map(([k, l]) => `<button data-tab="${k}" ${tab === k ? 'aria-current="page"' : ""}>${ICON[k]}<span>${l}</span></button>`).join("");
+}
+tabsEl.addEventListener("click", e => { const b = e.target.closest("button"); if (b) { tab = b.dataset.tab; render(); } });
+
+const doneSet = () => new Set(S.done);
+function missedDays() { const dn = doneSet(); const out = []; for (let d = 0; d < S.today; d++) if (!dn.has(d)) out.push(d); return out; }
+function todayProg() { if (S.prog.day !== S.today) S.prog = { day: S.today, beads: 0, rounds: 0 }; return S.prog; }
+
+function render() {
+  renderTabs();
+  if (tab === "home") renderHome(); else if (tab === "chart") renderChart(); else if (tab === "custom") renderCustom(); else renderAbout();
+  main.scrollTop = 0;
+}
+
+function renderHome() {
+  if (S.today > 80) {
+    main.innerHTML = `<div class="card today"><p class="eyebrow">ကိုးနဝင်း</p><h1>ရက် ၈၁ ရက် ပြည့်စုံစွာ ပြီးဆုံးပါပြီ</h1><p class="muted">သာဓု သာဓု သာဓု</p></div>${demoBox()}`;
+    return;
+  }
+  const t = info(S.today), pr = todayProg(), done = doneSet().has(S.today), nxt = S.today < 80 ? info(S.today + 1) : null;
+  const pct = Math.min(100, ((pr.rounds * PER + pr.beads) / (t.rounds * PER)) * 100);
+  const missed = missedDays();
+  main.innerHTML = `
+    <div class="row spread"><h1>ယနေ့</h1><span class="muted small">${t.wd}နေ့ · နမူနာ</span></div>
+    ${missed.length ? `<div class="card" style="border-color:var(--warn)"><div class="row"><span class="pill warn">ရက်ကျော် ${mm(missed.length)} ရက်</span></div><p class="small">ရက် ${missed.map(d => mm(d + 1)).join("၊ ")} ကို အက်ပ်တွင် မှတ်တမ်းမရှိပါ။</p><button class="btn line" data-act="missed">ဆုံးဖြတ်မည်</button></div>` : ""}
+    <div class="card today">
+      <div class="row spread"><span class="eyebrow">ကိုးနဝင်း · ${STAGE[t.s]} အဆင့် · ရက် ${mm(t.d + 1)}/၈၁</span>${t.veg ? '<span class="pill veg">သက်သက်လွတ်နေ့</span>' : ""}</div>
+      <div><p class="guna-big">${GUNA[t.g][0]}</p><p class="muted small">${GUNA[t.g][1]}</p></div>
+      <div class="stack"><div class="row spread small"><span>${done ? "ယနေ့ ပြီးပါပြီ" : `${mm(pr.rounds)} / ${mm(t.rounds)} ပတ်`}</span><span class="muted">${mm(t.rounds * PER)} လုံး</span></div><div class="bar"><i style="width:${done ? 100 : pct}%"></i></div></div>
+      <button class="btn block" data-act="count">${done ? "ထပ်မံ စိပ်မည်" : pr.beads || pr.rounds ? "ဆက်စိပ်မည်" : "စိပ်မည်"}</button>
+      <div class="stack"><span class="small muted">${STAGE[t.s]} အဆင့်၏ ရက် ${mm(t.p + 1)}/၉</span><div class="stage-dots">${Array.from({ length: 9 }, (_, i) => { const d = t.s * 9 + i; return `<i class="${doneSet().has(d) ? "on" : d === t.d ? "now" : ""}"></i>`; }).join("")}</div></div>
+      ${S.wishes[t.s] ? `<div class="quote small"><span class="muted">ဤအဆင့် ဆုတောင်း —</span> ${esc(S.wishes[t.s])}</div>` : ""}
+    </div>
+    ${nxt && nxt.veg ? `<div class="card"><div class="row"><span class="pill veg">သတိပေးချက်</span></div><p>မနက်ဖြန် (${nxt.wd}) သည် သက်သက်လွတ် စားရမည့်နေ့ ဖြစ်ပါသည်။</p></div>` : ""}
+    <div class="card"><div class="row spread"><h2>ကိုယ်ပိုင် ပုတီး</h2><button class="link small" data-tab-go="custom">အားလုံး</button></div>
+      <div>${S.custom.map(c => `<div class="list-item"><div class="grow"><div class="title">${esc(c.name)}</div><div class="small muted">${mm(c.rounds)} / ${mm(c.target)} ပတ်</div></div><button class="btn ghost" data-count-custom="${c.id}">စိပ်မည်</button></div>`).join("")}
+      <div class="list-item"><div class="grow"><div class="title">အခမဲ့ ရေတွက်ရန်</div><div class="small muted">ပန်းတိုင်မရှိ · ${mm(S.free.rounds)} ပတ်</div></div><button class="btn ghost" data-count-free>စိပ်မည်</button></div></div>
+    </div>
+    <div class="card"><div class="row spread"><span>နေ့စဉ် သတိပေးချိန်</span><strong>${mm(S.reminder.replace(":", ":"))}</strong></div></div>
+    ${demoBox()}`;
+}
+function demoBox() {
+  return `<div class="demo"><span class="small muted">နမူနာ စမ်းသပ်ရန် (အက်ပ်အစစ်တွင် မပါ)</span><div class="row">
+    <button class="btn ghost" data-demo="next">နောက်တစ်ရက်သို့</button>
+    <button class="btn ghost" data-demo="skip">ယနေ့ကို ကျော်ပြီး နောက်တစ်ရက်</button>
+    <button class="btn ghost" data-demo="reset">နမူနာ ပြန်စ</button></div></div>`;
+}
+
+function renderChart() {
+  const dn = doneSet();
+  let cells = "";
+  for (let s = 0; s < 9; s++) {
+    cells += `<div class="rh">${STAGE[s]}</div>`;
+    for (let p = 0; p < 9; p++) {
+      const t = info(s * 9 + p);
+      const cls = ["cell", t.veg && "veg", dn.has(t.d) && "done", t.d < S.today && !dn.has(t.d) && "missed", t.d === S.today && "now"].filter(Boolean).join(" ");
+      cells += `<button class="${cls}" data-cell="${t.d}" aria-label="ရက် ${mm(t.d + 1)} ${t.wd} ${GUNA[t.g][0]} ${mm(t.rounds)} ပတ်"><small>${t.wd}</small><b>${mm(t.g)}</b></button>`;
+    }
+  }
+  const total = S.done.length;
+  main.innerHTML = `
+    <div class="row spread"><h1>ကိုးနဝင်း ဇယား</h1><span class="small muted">${mm(total)}/၈၁ ရက်</span></div>
+    <p class="small muted">အကွက်ထဲရှိ ဂဏန်းသည် ဂုဏ်တော် အမှတ်စဉ်နှင့် စိပ်ရမည့် ပတ်ရေ ဖြစ်သည်။ အကွက်ကို နှိပ်၍ အသေးစိတ် ကြည့်နိုင်သည်။</p>
+    <div class="chart-wrap"><div class="chart">${cells}</div></div>
+    <div class="legend"><span><i style="background:var(--accent);border-color:var(--accent)"></i>ပြီး</span><span><i style="background:var(--jade-soft)"></i>သက်သက်လွတ်</span><span><i style="border:2px solid var(--warn)"></i>မှတ်တမ်းမရှိ</span><span><i style="outline:2px solid var(--fg)"></i>ယနေ့</span></div>
+    <div class="card"><h2>အဆင့်များ</h2>${STAGE.map((n, s) => { const c = Array.from({ length: 9 }, (_, i) => s * 9 + i).filter(d => dn.has(d)).length; return `<div class="list-item"><div class="grow"><div class="title">${n} အဆင့်</div>${S.wishes[s] ? `<div class="small muted">ဆုတောင်း — ${esc(S.wishes[s])}</div>` : ""}</div><span class="pill ${c === 9 ? "veg" : ""}">${c === 9 ? "ပြီး" : `${mm(c)}/၉`}</span></div>`; }).join("")}</div>`;
+}
+
+function renderCustom() {
+  main.innerHTML = `
+    <h1>ကိုယ်ပိုင် ပုတီး</h1>
+    <div class="card">${S.custom.length ? S.custom.map(c => `<div class="list-item"><div class="grow"><div class="title">${esc(c.name)}</div><div class="small muted">${esc(c.text)}</div><div class="small muted">တစ်ပတ် ${mm(c.per)} လုံး · နေ့စဉ် ${mm(c.target)} ပတ် · ယနေ့ ${mm(c.rounds)} ပတ်</div></div><div class="stack"><button class="btn ghost" data-count-custom="${c.id}">စိပ်မည်</button><button class="link small" data-del="${c.id}">ဖျက်မည်</button></div></div>`).join("") : '<p class="muted">ကိုယ်ပိုင် ပုတီး မရှိသေးပါ။ အောက်တွင် ထည့်ပါ။</p>'}
+      <div class="list-item"><div class="grow"><div class="title">အခမဲ့ ရေတွက်ရန်</div><div class="small muted">ပန်းတိုင်မရှိ၊ ပတ်ရေသာ ရေတွက်သည်</div></div><button class="btn ghost" data-count-free>စိပ်မည်</button></div></div>
+    <form class="card" id="newForm"><h2>အသစ် ထည့်မည်</h2>
+      <label for="f-name">အမည်<input id="f-name" required placeholder="ဥပမာ - မေတ္တာပို့"></label>
+      <label for="f-text">ရွတ်ဆိုရမည့် စာ<textarea id="f-text" placeholder="ပုတီးတစ်လုံးလျှင် ရွတ်ဆိုမည့်စာ"></textarea></label>
+      <div class="grid2"><label for="f-per">တစ်ပတ်လျှင် လုံးရေ<input id="f-per" type="number" min="1" value="108" inputmode="numeric"></label>
+      <label for="f-target">နေ့စဉ် ပတ်ရေ<input id="f-target" type="number" min="1" value="1" inputmode="numeric"></label></div>
+      <button class="btn block" type="submit">သိမ်းမည်</button></form>`;
+  document.getElementById("newForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = document.getElementById("f-name").value.trim(); if (!name) return;
+    S.custom.push({ id: "c" + Date.now(), name, text: document.getElementById("f-text").value.trim(), per: Math.max(1, +document.getElementById("f-per").value || 108), target: Math.max(1, +document.getElementById("f-target").value || 1), beads: 0, rounds: 0 });
+    save(); toast("သိမ်းပြီးပါပြီ"); renderCustom();
+  });
+}
+
+function renderAbout() {
+  const t = info(Math.min(S.today, 80));
+  main.innerHTML = `
+    <h1>ကိုးနဝင်း</h1>
+    <p>ဗုဒ္ဓဘုရား ဟောကြားတော်မူသည့် လောကီ အကျိုးစီးပွား ဖြစ်ထွန်းစေသော ဂုဏ်တော် ၉ ပါးကို အစဉ်အတိုင်း ပုတီးစိပ်သော အဓိဋ္ဌာန် ကျင့်စဉ် ဖြစ်သည်။</p>
+    <div class="card"><h2>စည်းကမ်းများ</h2><ol class="rules">${RULES.map(r => `<li>${r}</li>`).join("")}</ol></div>
+    <div class="card"><h2>${STAGE[t.s]} အဆင့် ဆုတောင်း</h2>
+      <label for="wish">ဤအဆင့်အတွက် ဆုတောင်းချက်<textarea id="wish" placeholder="ဆုတောင်းချက် ရေးပါ">${esc(S.wishes[t.s] || "")}</textarea></label>
+      <button class="btn ghost" data-act="saveWish">သိမ်းမည်</button></div>
+    <div class="card"><h2>သတိပေးချက်</h2>
+      <label for="rem">နေ့စဉ် သတိပေးချိန်<input id="rem" type="time" value="${S.reminder}"></label>
+      <label style="flex-direction:row;align-items:center;gap:8px;color:var(--fg)" for="vegrem"><input id="vegrem" type="checkbox" style="width:auto" ${S.vegReminder ? "checked" : ""}> သက်သက်လွတ်နေ့ မတိုင်မီ တစ်ရက်အလို သတိပေးမည်</label>
+      <button class="btn ghost" data-act="saveRem">သိမ်းမည်</button></div>
+    <div class="card"><h2>ဂုဏ်တော် ၉ ပါး</h2><div>${GUNA.slice(1).map((g, i) => `<details><summary>(${mm(i + 1)}) ${g[0]}</summary><div><p class="small">${g[1]}</p><p class="small muted">စိပ်ရမည့် ပတ်ရေ — ${mm(i + 1)} ပတ်</p></div></details>`).join("")}</div></div>
+    <div class="card"><h2>အဆင့်အလိုက် အကျိုးများ</h2><div>${BENEFIT.map((b, i) => `<details><summary>${STAGE[i]} အဆင့် အောင်မြင်ပြီးပါက</summary><div><p class="small">${b}</p></div></details>`).join("")}</div></div>`;
+}
+
+/* Counter */
+function openCounter(ctx) {
+  counterCtx = ctx;
+  if (ctx.kind === "koza") { const t = info(S.today); if (S.wishes[t.s] === undefined) return wishSheet(t, () => openCounter(ctx)); }
+  try { navigator.wakeLock && navigator.wakeLock.request("screen").then(l => (counterCtx.lock = l)).catch(() => {}); } catch {}
+  const el = document.createElement("section"); el.className = "counter"; el.id = "counter";
+  app.appendChild(el); drawCounter();
+}
+function ctxData() {
+  const c = counterCtx;
+  if (c.kind === "koza") { const t = info(S.today), p = todayProg(); return { title: GUNA[t.g][0], sub: GUNA[t.g][1], eyebrow: `ကိုးနဝင်း · ${STAGE[t.s]} အဆင့် · ရက် ${mm(t.d + 1)}`, per: PER, target: t.rounds, st: p }; }
+  if (c.kind === "custom") { const x = S.custom.find(v => v.id === c.id); return { title: x.name, sub: x.text, eyebrow: "ကိုယ်ပိုင် ပုတီး", per: x.per, target: x.target, st: x }; }
+  return { title: "အခမဲ့ ရေတွက်ရန်", sub: "", eyebrow: "ပန်းတိုင်မရှိ", per: PER, target: 0, st: S.free };
+}
+function drawCounter() {
+  const el = document.getElementById("counter"), d = ctxData();
+  const n = d.per, R = 46, dots = [];
+  const shown = Math.min(n, 108);
+  for (let i = 0; i < shown; i++) {
+    const a = (i / shown) * Math.PI * 2 - Math.PI / 2;
+    dots.push(`<circle class="bd" data-i="${i}" cx="${(50 + R * Math.cos(a)).toFixed(2)}" cy="${(50 + R * Math.sin(a)).toFixed(2)}" r="${shown > 60 ? 1.5 : 2.4}"/>`);
+  }
+  el.innerHTML = `
+    <header><button class="icon-btn" data-act="close" aria-label="နောက်သို့">${ICON.back}</button><span class="small muted" style="flex:1;min-width:0">${d.eyebrow}</span><button class="icon-btn" data-act="undo" aria-label="တစ်လုံး ပြန်နုတ်မည်">${ICON.undo}</button></header>
+    <div class="info"><p class="guna-big" style="font-size:24px">${esc(d.title)}</p>${d.sub ? `<p class="meaning">${esc(d.sub)}</p>` : ""}</div>
+    <div class="tap" id="tap" role="button" tabindex="0" aria-label="နှိပ်၍ ရေတွက်ပါ">
+      <div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true">${dots.join("")}</svg>
+        <div class="mid"><span class="num" id="num"></span><span class="muted small" id="of"></span></div></div>
+      <span class="hint">နှိပ် = တစ်လုံး · အပေါ်သို့ ပွတ်ဆွဲ = ပြန်နုတ်</span>
+    </div>
+    <footer><div class="rounds" id="rounds"></div><div class="row spread small"><span id="rtext"></span><button class="link small" data-act="near">နမူနာ — ပတ်ပြည့်ခါနီးသို့</button></div></footer>`;
+  updateCounter();
+  const tap = document.getElementById("tap"); let y0 = null, x0 = null;
+  tap.addEventListener("pointerdown", e => { y0 = e.clientY; x0 = e.clientX; });
+  tap.addEventListener("pointerup", e => {
+    if (y0 === null) return; const dy = e.clientY - y0, dx = e.clientX - x0; y0 = null;
+    if (dy < -50 && Math.abs(dy) > Math.abs(dx)) undo(); else if (Math.abs(dy) < 20 && Math.abs(dx) < 20) bump();
+  });
+  tap.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); bump(); } });
+}
+function updateCounter() {
+  const d = ctxData(), st = d.st, shown = Math.min(d.per, 108);
+  const lit = d.per > 108 ? Math.floor((st.beads / d.per) * shown) : st.beads;
+  document.querySelectorAll("#counter .bd").forEach(c => { const i = +c.dataset.i; c.classList.toggle("on", i < lit); c.classList.toggle("cur", i === lit && st.beads > 0); });
+  document.getElementById("num").textContent = mm(st.beads);
+  document.getElementById("of").textContent = `/ ${mm(d.per)}`;
+  const tgt = d.target, r = document.getElementById("rounds");
+  r.innerHTML = tgt ? Array.from({ length: Math.max(tgt, st.rounds) }, (_, i) => `<i class="${i < st.rounds ? "on" : ""}"></i>`).join("") : "";
+  document.getElementById("rtext").textContent = tgt ? `${mm(st.rounds)} / ${mm(tgt)} ပတ်` : `${mm(st.rounds)} ပတ်`;
+}
+function vib(p) { try { navigator.vibrate && navigator.vibrate(p); } catch {} }
+function bump() {
+  const d = ctxData(), st = d.st;
+  st.beads++; vib(15);
+  if (st.beads >= d.per) {
+    st.beads = 0; st.rounds++; vib([60, 60, 200]);
+    if (d.target && st.rounds === d.target) { save(); updateCounter(); return finished(); }
+    toast(`${mm(st.rounds)} ပတ် ပြည့်ပါပြီ`);
+  }
+  save(); updateCounter();
+}
+function undo() {
+  const d = ctxData(), st = d.st;
+  if (st.beads > 0) st.beads--; else if (st.rounds > 0) { st.rounds--; st.beads = d.per - 1; } else return;
+  vib(8); toast("တစ်လုံး ပြန်နုတ်ပြီး"); save(); updateCounter();
+}
+function closeCounter() { try { counterCtx && counterCtx.lock && counterCtx.lock.release(); } catch {} document.getElementById("counter")?.remove(); counterCtx = null; render(); }
+function finished() {
+  if (counterCtx.kind !== "koza") return sheet(`<p class="big">ယနေ့ ပန်းတိုင် ပြည့်ပါပြီ</p><p>သာဓု သာဓု သာဓု</p><button class="btn block" data-act="sheetCloseAll">ပိတ်မည်</button>`);
+  const t = info(S.today);
+  if (!S.done.includes(t.d)) S.done.push(t.d);
+  save();
+  if (t.p === 8) {
+    return sheet(`<span class="pill veg" style="align-self:flex-start">${STAGE[t.s]} အဆင့် ပြီးဆုံး</span>
+      <p class="big">${STAGE[t.s]} အဆင့် အောင်မြင်စွာ ပြီးဆုံးပါပြီ</p>
+      ${S.wishes[t.s] ? `<div class="quote"><p class="small muted">သင်၏ ဆုတောင်း</p><p>${esc(S.wishes[t.s])}</p></div>` : ""}
+      <div><p class="small muted">${STAGE[t.s]} အဆင့် အောင်မြင်ပြီးပါက</p><p>${BENEFIT[t.s]}</p></div>
+      <p class="small muted">${t.d === 80 ? "ကိုးနဝင်း ရက် ၈၁ ရက် ပြည့်စုံပါပြီ။" : `နောက်အဆင့် — ${STAGE[t.s + 1]} အဆင့် (${info(t.d + 1).wd}နေ့မှ စ)`}</p>
+      <button class="btn block" data-act="sheetCloseAll">သာဓု</button>`);
+  }
+  const n = info(t.d + 1);
+  sheet(`<p class="big">ယနေ့ ${mm(t.rounds)} ပတ် ပြည့်ပါပြီ</p>
+    <p>${STAGE[t.s]} အဆင့်၏ ရက် ${mm(t.p + 1)}/၉ ပြီးဆုံးပါပြီ။</p>
+    <div class="quote small"><span class="muted">မနက်ဖြန် (${n.wd})</span> — ${GUNA[n.g][0]} · ${mm(n.rounds)} ပတ်${n.veg ? ' <span class="pill veg">သက်သက်လွတ်နေ့</span>' : ""}</div>
+    <button class="btn block" data-act="sheetCloseAll">သာဓု</button>`);
+}
+
+/* Sheets */
+function sheet(html) { closeSheet(); const s = document.createElement("div"); s.className = "scrim"; s.id = "scrim"; s.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">${html}</div>`; app.appendChild(s); }
+function closeSheet() { document.getElementById("scrim")?.remove(); }
+let afterWish = null;
+function wishSheet(t, then) {
+  afterWish = then;
+  sheet(`<span class="pill" style="align-self:flex-start">${STAGE[t.s]} အဆင့် စတင်ခြင်း</span>
+    <p class="big">ဤအဆင့်အတွက် ဆုတောင်းချက်</p>
+    <p class="small muted">တစ်ဆင့်လျှင် အရေးအကြီးဆုံး ကိစ္စတစ်ခုကို ဆုတောင်းနိုင်သည်။ အဆင့်ပြီးဆုံးချိန်တွင် ပြန်ပြပေးပါမည်။</p>
+    <label for="wishIn">ဆုတောင်းချက်<textarea id="wishIn"></textarea></label>
+    <div class="grid2"><button class="btn ghost" data-act="wishSkip">နောက်မှ</button><button class="btn" data-act="wishSave">သိမ်းမည်</button></div>`);
+}
+function missedSheet() {
+  const m = missedDays();
+  sheet(`<span class="pill warn" style="align-self:flex-start">ရက်ကျော်နေပါသည်</span>
+    <p class="big">ရက် ${m.map(d => mm(d + 1)).join("၊ ")} ကို မှတ်တမ်း မရှိပါ</p>
+    <p class="small muted">ကိုးနဝင်းကို ရက်မပျက်မကွက် ဝင်ရပါမည်။ အက်ပ်မသုံးဘဲ စိပ်ခဲ့ပါက "စိပ်ပြီးပါပြီ" ကို ရွေးပါ။</p>
+    <button class="btn block" data-act="mDone">အက်ပ်မသုံးဘဲ စိပ်ပြီးပါပြီ</button>
+    <button class="btn line block" data-act="mStage">${STAGE[info(Math.min(m[0], 80)).s]} အဆင့်ကို အစမှ ပြန်စမည်</button>
+    <button class="btn line block" data-act="mAll">ရက် ၁ မှ ပြန်စမည် (တနင်္လာနေ့)</button>
+    <button class="link small" data-act="sheetClose" style="align-self:center">နောက်မှ ဆုံးဖြတ်မည်</button>`);
+}
+
+let toastT;
+function toast(msg) { document.getElementById("toast")?.remove(); const t = document.createElement("div"); t.className = "toast"; t.id = "toast"; t.textContent = msg; app.appendChild(t); clearTimeout(toastT); toastT = setTimeout(() => t.remove(), 1400); }
+
+app.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const a = b.dataset.act;
+  if (b.dataset.tabGo) { tab = b.dataset.tabGo; return render(); }
+  if (b.dataset.countCustom) return openCounter({ kind: "custom", id: b.dataset.countCustom });
+  if (b.hasAttribute("data-count-free")) return openCounter({ kind: "free" });
+  if (b.dataset.del) { S.custom = S.custom.filter(c => c.id !== b.dataset.del); save(); return renderCustom(); }
+  if (b.dataset.cell) { const t = info(+b.dataset.cell); return toast(`ရက် ${mm(t.d + 1)} · ${t.wd} · ${GUNA[t.g][0]} ${mm(t.rounds)} ပတ်`); }
+  if (b.dataset.demo) {
+    if (b.dataset.demo === "reset") { S = seed(); }
+    else if (b.dataset.demo === "next") { if (!doneSet().has(S.today) && S.today <= 80) S.done.push(S.today); S.today++; }
+    else { S.today++; }
+    save(); return render();
+  }
+  switch (a) {
+    case "count": return openCounter({ kind: "koza" });
+    case "missed": return missedSheet();
+    case "close": return closeCounter();
+    case "undo": return undo();
+    case "near": { const d = ctxData(); d.st.beads = d.per - 1; save(); return updateCounter(); }
+    case "sheetClose": return closeSheet();
+    case "sheetCloseAll": closeSheet(); return closeCounter();
+    case "wishSave": S.wishes[info(S.today).s] = document.getElementById("wishIn").value.trim(); save(); closeSheet(); return afterWish && afterWish();
+    case "wishSkip": S.wishes[info(S.today).s] = ""; save(); closeSheet(); return afterWish && afterWish();
+    case "saveWish": S.wishes[info(Math.min(S.today, 80)).s] = document.getElementById("wish").value.trim(); save(); return toast("သိမ်းပြီးပါပြီ");
+    case "saveRem": S.reminder = document.getElementById("rem").value || S.reminder; S.vegReminder = document.getElementById("vegrem").checked; save(); return toast("သတိပေးချိန် သိမ်းပြီးပါပြီ");
+    case "mDone": missedDays().forEach(d => S.done.push(d)); save(); closeSheet(); toast("မှတ်တမ်းတင်ပြီးပါပြီ"); return render();
+    case "mStage": { const s = info(missedDays()[0]).s; S.done = S.done.filter(d => d < s * 9); S.today = s * 9; S.prog = { day: S.today, beads: 0, rounds: 0 }; save(); closeSheet(); toast(`${STAGE[s]} အဆင့်ကို ပြန်စပါပြီ`); return render(); }
+    case "mAll": S.done = []; S.today = 0; S.wishes = {}; S.prog = { day: 0, beads: 0, rounds: 0 }; save(); closeSheet(); toast("ရက် ၁ မှ ပြန်စပါပြီ"); return render();
+  }
+});
+
+render();
+</script>
