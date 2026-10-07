@@ -84,7 +84,7 @@ fun strandSpacing(height: Float, maxSpacing: Float) = min(maxSpacing, height / 6
  * shading and a soft matte sheen (wood is not glossy). [seed] gives every bead its own
  * grain angle, spacing and a slight tone difference, as with natural wood.
  */
-private fun DrawScope.drawBead(
+internal fun DrawScope.drawBead(
     w: Wood, c: Offset, r: Float, lit: Boolean, now: Boolean, alpha: Float, glow: Boolean = true, seed: Int = 0,
     axis: Offset = Offset(0f, 1f), string: Color? = null, stringWidth: Float = 0f,
 ) {

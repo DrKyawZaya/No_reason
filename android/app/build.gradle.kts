@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -11,13 +13,31 @@ android {
         applicationId = "com.satepadee.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 8
-        versionName = "0.3.3"
+        versionCode = 9
+        versionName = "1.0.0"
+    }
+
+    // Upload key for Google Play. keystore.properties and the .jks stay out of git;
+    // without them the release build is simply unsigned.
+    val keystoreFile = rootProject.file("keystore.properties")
+    if (keystoreFile.exists()) {
+        val keys = Properties().apply { keystoreFile.inputStream().use { load(it) } }
+        signingConfigs {
+            create("upload") {
+                storeFile = rootProject.file(keys.getProperty("storeFile"))
+                storePassword = keys.getProperty("storePassword")
+                keyAlias = keys.getProperty("keyAlias")
+                keyPassword = keys.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            signingConfigs.findByName("upload")?.let { signingConfig = it }
         }
     }
     compileOptions {
