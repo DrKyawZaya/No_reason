@@ -48,3 +48,16 @@ class KozawinTest {
         assertEquals("၁၀၈", Mm.n(108))
     }
 }
+
+class StreakTest {
+    @Test fun countsConsecutiveDaysEndingTodayOrYesterday() {
+        assertEquals(0, streak(emptyMap(), 100))
+        assertEquals(3, streak(mapOf(98L to 5, 99L to 1, 100L to 108), 100))
+        assertEquals(2, streak(mapOf(98L to 5, 99L to 1), 100)) // today not counted yet
+        assertEquals(1, streak(mapOf(96L to 5, 100L to 1), 100))
+    }
+
+    @Test fun targetKeysRoundTrip() {
+        for (t in listOf(Target.Kozawin, Target.Free, Target.Custom("r123"))) assertEquals(t, Target.fromKey(t.key))
+    }
+}

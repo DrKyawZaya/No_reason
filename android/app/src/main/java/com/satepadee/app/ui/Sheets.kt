@@ -178,3 +178,13 @@ fun MissedDialog(model: AppModel, onDismiss: () -> Unit) {
         confirmButton = { TextButton(onDismiss) { Text("နောက်မှ ဆုံးဖြတ်မည်", style = Type.body.copy(color = Palette.accent)) } },
     )
 }
+
+@Composable
+fun GoalDialog(onClose: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onClose, containerColor = Palette.surface,
+        title = { Text("ယနေ့ ပန်းတိုင် ပြည့်ပါပြီ", style = Type.heading.copy(color = Palette.accent)) },
+        text = { Text("သာဓု သာဓု သာဓု", style = Type.body) },
+        confirmButton = { PrimaryButton("သာဓု", Modifier.width(120.dp), onClose) },
+    )
+}

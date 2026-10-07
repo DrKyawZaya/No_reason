@@ -43,8 +43,8 @@ Round / day / stage complete → History → Settings.
 | 1 | UX: flow, clickable prototype, Canva mockups | Approved design |
 | 2 | Content: ကိုးနဝင်း (done, pending review) + other recitations | `content/*.json` |
 | 3 | Android project + counter screen (**first build done**: `android/`) | Working `.apk` |
-| 4 | Recitations, programs, custom recitations | Core features |
-| 5 | Reminders, history, settings | Beta |
+| 4 | Recitations, programs, custom recitations (**done**: chart, own recitations) | Core features |
+| 5 | Reminders, history, settings (**done**, needs phone testing) | Beta |
 | 6 | Real-device testing | Stable build |
 | 7 | Play Store: account, signing, privacy policy, closed test (12 testers × 14 days) | Published |
 
@@ -78,3 +78,4 @@ Round / day / stage complete → History → Settings.
 - `applicationId` is `com.satepadee.app` (placeholder; cannot change after the first Play Store upload).
 - Content JSON in `content/` is packaged as app assets.
 - Build: `cd android && ./gradlew testDebugUnitTest assembleDebug` (needs `ANDROID_HOME`).
+- Screenshot tests (Robolectric + Roborazzi) render every screen to `android/app/build/screenshots/`; samples in `design/android/`.

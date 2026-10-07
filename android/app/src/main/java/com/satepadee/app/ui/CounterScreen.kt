@@ -80,7 +80,7 @@ fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
         val dayIndex = day?.index
         val r = model.count(target)
         if (r == CountResult.Bead) haptics.tick() else haptics.round()
-        if (r == CountResult.DayDone || r == CountResult.StageDone || r == CountResult.ProgramDone) {
+        if (r == CountResult.DayDone || r == CountResult.StageDone || r == CountResult.ProgramDone || r == CountResult.GoalDone) {
             finished = r; finishedDay = dayIndex
         }
     }
@@ -93,7 +93,11 @@ fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
                 contentAlignment = Alignment.Center,
             ) { BackIcon() }
             Text(
-                if (day != null) "${model.content.kozawinName} · ${Mm.STAGES[day.stage]} အဆင့် · ရက် ${Mm.n(day.index + 1)}" else "ပန်းတိုင်မရှိ",
+                when {
+                    day != null -> "${model.content.kozawinName} · ${Mm.STAGES[day.stage]} အဆင့် · ရက် ${Mm.n(day.index + 1)}"
+                    target is Target.Custom -> "ကိုယ်ပိုင် ပုတီး"
+                    else -> "ပန်းတိုင်မရှိ"
+                },
                 style = Type.small.copy(color = Palette.muted), modifier = Modifier.weight(1f),
             )
             Box(
@@ -104,12 +108,18 @@ fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
         }
 
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            if (day != null) {
-                val g = model.content.guna(day.guna)
-                Text(g.pali, style = Type.guna.copy(color = Palette.accent), textAlign = TextAlign.Center)
-                Text(g.meaning.first(), style = Type.small.copy(color = Palette.muted), textAlign = TextAlign.Center)
-            } else {
-                Text("စိပ်ပုတီး (အလွတ်)", style = Type.guna.copy(color = Palette.accent))
+            val custom = (target as? Target.Custom)?.let { model.recitation(it.id) }
+            when {
+                day != null -> {
+                    val g = model.content.guna(day.guna)
+                    Text(g.pali, style = Type.guna.copy(color = Palette.accent), textAlign = TextAlign.Center)
+                    Text(g.meaning.first(), style = Type.small.copy(color = Palette.muted), textAlign = TextAlign.Center)
+                }
+                custom != null -> {
+                    Text(custom.text.ifBlank { custom.name }, style = Type.guna.copy(color = Palette.accent), textAlign = TextAlign.Center)
+                    if (custom.text.isNotBlank()) Text(custom.name, style = Type.small.copy(color = Palette.muted))
+                }
+                else -> Text("စိပ်ပုတီး (အလွတ်)", style = Type.guna.copy(color = Palette.accent))
             }
         }
 
@@ -179,8 +189,8 @@ fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
 
     if (sheet) WoodSheet(model) { sheet = false }
     finished?.let { r ->
-        val idx = finishedDay ?: 0
-        FinishedDialog(model, r, Kozawin.day(idx), onClose = { finished = null; onBack() })
+        if (r == CountResult.GoalDone) GoalDialog { finished = null; onBack() }
+        else FinishedDialog(model, r, Kozawin.day(finishedDay ?: 0), onClose = { finished = null; onBack() })
     }
 }
 

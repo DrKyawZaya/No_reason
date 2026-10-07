@@ -11,11 +11,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
@@ -111,4 +114,14 @@ fun BackIcon(modifier: Modifier = Modifier) {
         drawLine(Palette.fg, Offset(w * 0.62f, w * 0.2f), Offset(w * 0.32f, w * 0.5f), w * 0.09f, StrokeCap.Round)
         drawLine(Palette.fg, Offset(w * 0.32f, w * 0.5f), Offset(w * 0.62f, w * 0.8f), w * 0.09f, StrokeCap.Round)
     }
+}
+
+/** Scrolling page body used by every tab. */
+@Composable
+fun ScreenColumn(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        content = content,
+    )
 }

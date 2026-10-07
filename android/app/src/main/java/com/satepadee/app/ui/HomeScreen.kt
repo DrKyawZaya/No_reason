@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -39,14 +39,10 @@ fun HomeScreen(model: AppModel, onCount: (Target) -> Unit) {
     val index = model.dayIndex
     val today = model.todayDay()
     var missedOpen by remember(model.today) { mutableStateOf(model.missedDays().isNotEmpty()) }
-    var rulesOpen by remember { mutableStateOf(false) }
     var woodOpen by remember { mutableStateOf(false) }
     var wishFor by remember { mutableStateOf<Int?>(null) }
 
-    Column(
-        Modifier.fillMaxSize().background(Palette.bg).safeDrawingPadding().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+    ScreenColumn {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("ယနေ့", style = Type.title, modifier = Modifier.weight(1f))
             Text("${Mm.WEEKDAYS[Days.weekday(model.today)]}နေ့", style = Type.small.copy(color = Palette.muted))
@@ -96,6 +92,17 @@ fun HomeScreen(model: AppModel, onCount: (Target) -> Unit) {
         }
 
         Card {
+            Text("ကိုယ်ပိုင် ပုတီး", style = Type.heading)
+            for (r in model.state.recitations) {
+                val p = model.recitationProgress(r)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(r.name, style = Type.body.copy(fontWeight = FontWeight.Bold))
+                        Text("${Mm.n(p.rounds)} / ${Mm.n(r.dailyRounds)} ပတ်", style = Type.small.copy(color = Palette.muted))
+                    }
+                    GhostButton("စိပ်မည်") { onCount(Target.Custom(r.id)) }
+                }
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("စိပ်ပုတီး (အလွတ်)", style = Type.body.copy(fontWeight = FontWeight.Bold))
@@ -107,18 +114,10 @@ fun HomeScreen(model: AppModel, onCount: (Target) -> Unit) {
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button) { woodOpen = true }.padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                BeadSwatch(model.wood(), Modifier.height(28.dp).fillMaxWidth(0.1f))
+                BeadSwatch(model.wood(), Modifier.size(28.dp))
                 Text("ပုတီး — ${model.wood().name}", style = Type.small, modifier = Modifier.weight(1f))
                 Text("ပြောင်းမည်", style = Type.small.copy(color = Palette.accent))
             }
-        }
-
-        Card {
-            Row(Modifier.fillMaxWidth().clickable(role = Role.Button) { rulesOpen = !rulesOpen }, verticalAlignment = Alignment.CenterVertically) {
-                Text("ကိုးနဝင်း စည်းကမ်းများ", style = Type.heading, modifier = Modifier.weight(1f))
-                Text(if (rulesOpen) "ပိတ်မည်" else "ကြည့်မည်", style = Type.small.copy(color = Palette.accent))
-            }
-            if (rulesOpen) content.rules.forEachIndexed { i, r -> Text("${Mm.n(i + 1)}။ $r", style = Type.small) }
         }
     }
 

@@ -1,0 +1,54 @@
+package com.satepadee.app.ui
+
+import android.content.Context
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onRoot
+import androidx.test.core.app.ApplicationProvider
+import com.github.takahirom.roborazzi.captureRoboImage
+import com.satepadee.app.data.AppModel
+import com.satepadee.app.data.Content
+import com.satepadee.app.data.Days
+import com.satepadee.app.data.Target
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+
+/** Renders each screen to build/screenshots so layouts can be checked without a device. */
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [35], qualifiers = "w390dp-h844dp-xxhdpi")
+class ScreenshotTest {
+    @get:Rule val rule = createComposeRule()
+
+    /** Day 9 of ကိုးနဝင်း (stage 1, last day), 5 of 8 rounds done, as in the design. */
+    private fun model(): AppModel {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val prefs = context.getSharedPreferences("shot", Context.MODE_PRIVATE)
+        prefs.edit().clear()
+            .putLong("start", Days.today() - 8).putString("done", "0,1,2,3,4,5,6,7")
+            .putInt("progressDay", 8).putInt("progressBeads", 40).putInt("progressRounds", 5)
+            .putString("wishes", """{"0":"မိသားစု ကျန်းမာ ချမ်းသာပါစေ"}""")
+            .putString("birthDay", "thu")
+            .putString("recitations", """[{"id":"r1","name":"မေတ္တာပို့","text":"သဗ္ဗေ သတ္တာ အဝေရာ ဟောန္တု","perRound":108,"dailyRounds":3}]""")
+            .putString("history", (0..13).associate { (Days.today() - it).toString() to (it * 97 % 900) }.let { org.json.JSONObject(it).toString() })
+            .commit()
+        return AppModel(prefs, Content.load(context))
+    }
+
+    private fun shot(name: String, content: @Composable () -> Unit) {
+        rule.setContent { SatePaDeeTheme { content() } }
+        rule.waitForIdle()
+        rule.onRoot().captureRoboImage("build/screenshots/$name.png")
+    }
+
+    @Test fun home() { val m = model(); shot("1-home") { HomeScreen(m) {} } }
+    @Test fun counterTap() { val m = model(); shot("2-counter") { CounterScreen(m, Target.Kozawin) {} } }
+    @Test fun chart() { val m = model(); shot("3-chart") { ChartScreen(m) } }
+    @Test fun custom() { val m = model(); shot("4-custom") { CustomScreen(m) {} } }
+    @Test fun settings() { val m = model(); shot("5-settings") { SettingsScreen(m) } }
+    @Test fun shell() { val m = model(); shot("6-shell") { AppShell(m) } }
+}
