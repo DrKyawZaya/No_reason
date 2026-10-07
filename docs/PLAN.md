@@ -9,10 +9,10 @@ to be published on Google Play.
 - Recitations: built-in ones (ကိုးနဝင်း first) with description, rules and reminders,
   plus recitations the user creates.
 - Target: Google Play Store.
-- Stack: Kotlin + Jetpack Compose, Room, DataStore, AlarmManager/WorkManager. No internet permission.
+- Stack: Kotlin + Jetpack Compose, SharedPreferences, AlarmManager. No internet permission.
 
 ## Features (v1)
-1. **Counter** — large tap area, swipe up to undo, vibration per bead and per round, screen stays on.
+1. **Counter** — tap or swipe (user's choice) in a large area, no undo, vibration per bead and per round, screen stays on.
 2. **Built-in recitations** — content lives in `content/*.json`, never hard-coded.
 3. **Description screen** — meaning, rules and benefits before starting.
 4. **Multi-day programs** — e.g. ကိုးနဝင်း: 81 days, today's guna and rounds shown automatically.
@@ -20,7 +20,7 @@ to be published on Google Play.
 6. **Reminders** — daily time chosen when a recitation is picked, plus a day-before reminder for
    vegetarian (သက်သက်လွတ်) days.
 7. **History** — daily log, calendar, streak.
-8. **Settings** — vibration, sound, theme, font size.
+8. **Settings** — count mode (tap/swipe), birth day and bead wood, reminder time.
 
 ## ကိုးနဝင်း model (from the printed chart)
 - 9 stages (အဆင့်) × 9 days = 81 days, must start on a Monday, no missed days.
@@ -79,3 +79,10 @@ Round / day / stage complete → History → Settings.
 - Content JSON in `content/` is packaged as app assets.
 - Build: `cd android && ./gradlew testDebugUnitTest assembleDebug` (needs `ANDROID_HOME`).
 - Screenshot tests (Robolectric + Roborazzi) render every screen to `android/app/build/screenshots/`; samples in `design/android/`.
+
+## Links
+- Repository: https://github.com/DrKyawZaya/No_reason (branch `claude/loving-ptolemy-jg20hk`)
+- Figma design: https://www.figma.com/design/kboHMgjsGdaUGQxLkyELks
+- Clickable prototype: https://claude.ai/artifact/N2zqp83giaeKZwEhrx665g
+- Canva mockups: https://canva.link/jjicn7pxz4aj7pw · icon draft: https://canva.link/soxphoh3scakwzi
+- Latest test build: 0.2.1 (swipe counts exactly one bead)
