@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -116,12 +118,44 @@ fun BackIcon(modifier: Modifier = Modifier) {
     }
 }
 
-/** Scrolling page body used by every tab. */
+/** Keeps content to a comfortable reading width on tablets (e.g. Mi Pad), centred. */
+fun Modifier.readableWidth(): Modifier = wrapContentWidth(Alignment.CenterHorizontally).widthIn(max = 560.dp).fillMaxWidth()
+
+/** Scrolling page body used by every screen. */
 @Composable
 fun ScreenColumn(content: @Composable ColumnScope.() -> Unit) {
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp).readableWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         content = content,
     )
+}
+
+/** Back button and title used at the top of full-screen pages. */
+@Composable
+fun TopBar(title: String, onBack: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Box(
+            Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(Palette.surface).border(1.dp, Palette.line, RoundedCornerShape(12.dp))
+                .clickable(role = Role.Button, onClick = onBack),
+            contentAlignment = Alignment.Center,
+        ) { BackIcon() }
+        Text(title, style = Type.title)
+    }
+}
+
+@Composable
+fun GearIcon(modifier: Modifier = Modifier) {
+    Canvas(modifier.size(22.dp)) {
+        val w = size.width
+        val c = Offset(w / 2, w / 2)
+        for (i in 0 until 8) {
+            val a = Math.toRadians(i * 45.0)
+            val dx = kotlin.math.cos(a).toFloat()
+            val dy = kotlin.math.sin(a).toFloat()
+            drawLine(Palette.fg, Offset(c.x + dx * w * 0.28f, c.y + dy * w * 0.28f), Offset(c.x + dx * w * 0.44f, c.y + dy * w * 0.44f), w * 0.12f, StrokeCap.Round)
+        }
+        drawCircle(Palette.fg, w * 0.3f, c, style = androidx.compose.ui.graphics.drawscope.Stroke(w * 0.09f))
+        drawCircle(Palette.fg, w * 0.1f, c, style = androidx.compose.ui.graphics.drawscope.Stroke(w * 0.08f))
+    }
 }

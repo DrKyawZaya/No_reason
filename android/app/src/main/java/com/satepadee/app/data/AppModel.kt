@@ -41,6 +41,8 @@ data class AppState(
     /** Minutes after midnight. */
     val reminderMinutes: Int = 5 * 60 + 30,
     val vegetarianReminder: Boolean = true,
+    /** The three first-open questions have been answered (or skipped). */
+    val setupDone: Boolean = false,
 )
 
 enum class CountMode { Tap, Swipe }
@@ -191,6 +193,8 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
         onRemindersChanged(state)
     }
 
+    fun completeSetup() = update(state.copy(setupDone = true))
+
     private fun update(new: AppState) { state = new; save(new) }
 
     private fun load(): AppState = AppState(
@@ -221,6 +225,7 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
         reminderOn = prefs.getBoolean(K_REM_ON, false),
         reminderMinutes = prefs.getInt(K_REM_MIN, 5 * 60 + 30),
         vegetarianReminder = prefs.getBoolean(K_REM_VEG, true),
+        setupDone = prefs.getBoolean(K_SETUP, false),
     )
 
     private fun save(s: AppState) {
@@ -245,6 +250,7 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
             putBoolean(K_REM_ON, s.reminderOn)
             putInt(K_REM_MIN, s.reminderMinutes)
             putBoolean(K_REM_VEG, s.vegetarianReminder)
+            putBoolean(K_SETUP, s.setupDone)
         }.apply()
     }
 
@@ -254,6 +260,6 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
         const val K_MODE = "mode"; const val K_WOOD = "wood"; const val K_BIRTH = "birthDay"
         const val K_FBEADS = "freeBeads"; const val K_FROUNDS = "freeRounds"; const val K_RECITATIONS = "recitations"
         const val K_HISTORY = "history"; const val K_REM_ON = "reminderOn"; const val K_REM_MIN = "reminderMinutes"
-        const val K_REM_VEG = "vegetarianReminder"
+        const val K_REM_VEG = "vegetarianReminder"; const val K_SETUP = "setupDone"
     }
 }

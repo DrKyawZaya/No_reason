@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,9 +22,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -33,36 +32,50 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.satepadee.app.data.AppModel
+import com.satepadee.app.data.CountResult
 import com.satepadee.app.data.Target
 
-private enum class Tab(val label: String) { Home("ယနေ့"), Chart("ဇယား"), Custom("ကိုယ်ပိုင်"), About("အကြောင်း") }
+private enum class Tab(val label: String) { Home("ယနေ့"), Chart("ဇယား") }
 
-/** Four tabs, as in the Figma design; the counter opens full screen over them. */
+/**
+ * Two tabs (ယနေ့, ဇယား). Settings, the ကိုးနဝင်း page, the add form, the counter and the
+ * "သာဓု" screen open full screen over them. First open shows the three setup questions.
+ */
 @Composable
 fun AppShell(model: AppModel) {
     var tab by rememberSaveable { mutableStateOf(Tab.Home) }
-    var counting by rememberSaveable { mutableStateOf<String?>(null) }
-    val target = counting?.let(Target::fromKey)
-    val count: (Target) -> Unit = { counting = it.key }
+    var page by rememberSaveable { mutableStateOf<String?>(null) }      // "settings", "about", "add"
+    var counting by rememberSaveable { mutableStateOf<String?>(null) }  // Target.key
+    var finished by rememberSaveable { mutableStateOf<String?>(null) }  // "Result:dayIndex"
 
-    if (target != null) {
-        BackHandler { counting = null }
-        CounterScreen(model, target) { counting = null }
+    if (!model.state.setupDone) { Onboarding(model) { model.completeSetup() }; return }
+
+    finished?.let { f ->
+        val (r, d) = f.split(':')
+        FinishedScreen(model, CountResult.valueOf(r), d.toIntOrNull()) { finished = null }
         return
+    }
+    counting?.let { key ->
+        BackHandler { counting = null }
+        CounterScreen(model, Target.fromKey(key), onFinished = { r, d -> counting = null; finished = "${r.name}:${d ?: ""}" }) { counting = null }
+        return
+    }
+    when (page) {
+        "settings" -> { SettingsScreen(model, onAbout = { page = "about" }) { page = null }; return }
+        "about" -> { AboutKozawinScreen(model) { page = "settings" }; return }
+        "add" -> { AddRecitationScreen(model) { page = null }; return }
     }
     BackHandler(enabled = tab != Tab.Home) { tab = Tab.Home }
 
     Column(Modifier.fillMaxSize().background(Palette.bg).statusBarsPadding()) {
         Box(Modifier.weight(1f)) {
             when (tab) {
-                Tab.Home -> HomeScreen(model, count)
+                Tab.Home -> HomeScreen(model, onSettings = { page = "settings" }, onAdd = { page = "add" }) { counting = it.key }
                 Tab.Chart -> ChartScreen(model)
-                Tab.Custom -> CustomScreen(model, count)
-                Tab.About -> SettingsScreen(model)
             }
         }
         HorizontalDivider(color = Palette.line)
-        Row(Modifier.fillMaxWidth().background(Palette.surface).navigationBarsPadding().padding(top = 6.dp, bottom = 8.dp)) {
+        Row(Modifier.fillMaxWidth().background(Palette.surface).navigationBarsPadding().padding(top = 8.dp, bottom = 10.dp)) {
             for (t in Tab.entries) {
                 val on = t == tab
                 val color = if (on) Palette.accent else Palette.muted
@@ -71,7 +84,7 @@ fun AppShell(model: AppModel) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     TabIcon(t, color)
-                    Text(t.label, style = Type.tiny.copy(color = color, fontWeight = if (on) FontWeight.Bold else FontWeight.Normal))
+                    Text(t.label, style = Type.small.copy(color = color, fontWeight = if (on) FontWeight.Bold else FontWeight.Normal))
                 }
             }
         }
@@ -80,7 +93,7 @@ fun AppShell(model: AppModel) {
 
 @Composable
 private fun TabIcon(tab: Tab, color: Color) {
-    Canvas(Modifier.size(22.dp)) {
+    Canvas(Modifier.size(24.dp)) {
         val w = size.width
         val stroke = Stroke(width = w * 0.08f, cap = StrokeCap.Round)
         when (tab) {
@@ -91,15 +104,6 @@ private fun TabIcon(tab: Tab, color: Color) {
                     drawLine(color, Offset(w * 0.15f, w * f), Offset(w * 0.85f, w * f), w * 0.08f)
                     drawLine(color, Offset(w * f, w * 0.15f), Offset(w * f, w * 0.85f), w * 0.08f)
                 }
-            }
-            Tab.Custom -> {
-                drawLine(color, Offset(w * 0.5f, w * 0.18f), Offset(w * 0.5f, w * 0.82f), w * 0.08f, StrokeCap.Round)
-                drawLine(color, Offset(w * 0.18f, w * 0.5f), Offset(w * 0.82f, w * 0.5f), w * 0.08f, StrokeCap.Round)
-            }
-            Tab.About -> {
-                drawCircle(color, w * 0.38f, style = stroke)
-                drawLine(color, Offset(w * 0.5f, w * 0.45f), Offset(w * 0.5f, w * 0.68f), w * 0.08f, StrokeCap.Round)
-                drawCircle(color, w * 0.05f, Offset(w * 0.5f, w * 0.32f))
             }
         }
     }

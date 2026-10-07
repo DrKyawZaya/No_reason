@@ -90,52 +90,6 @@ fun WoodSheet(model: AppModel, onDismiss: () -> Unit) {
     }
 }
 
-/** Shown when the day's rounds are complete; at the end of a stage it repeats the wish and the stage's benefits. */
-@Composable
-fun FinishedDialog(model: AppModel, result: CountResult, day: Kozawin.Day, onClose: () -> Unit) {
-    val content = model.content
-    AlertDialog(
-        onDismissRequest = onClose, containerColor = Palette.surface,
-        confirmButton = { PrimaryButton("သာဓု", Modifier.width(120.dp), onClose) },
-        title = {
-            Text(
-                when (result) {
-                    CountResult.ProgramDone -> "ကိုးနဝင်း ရက် ၈၁ ရက် ပြည့်စုံစွာ ပြီးဆုံးပါပြီ"
-                    CountResult.StageDone -> "${Mm.STAGES[day.stage]} အဆင့် အောင်မြင်စွာ ပြီးဆုံးပါပြီ"
-                    else -> "ယနေ့ ${Mm.n(day.rounds)} ပတ် ပြည့်ပါပြီ"
-                },
-                style = Type.heading.copy(color = Palette.accent),
-            )
-        },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (result == CountResult.DayDone) {
-                    Text("${Mm.STAGES[day.stage]} အဆင့်၏ ရက် ${Mm.n(day.position + 1)}/၉ ပြီးဆုံးပါပြီ။", style = Type.body)
-                    val next = Kozawin.day(day.index + 1)
-                    Text(
-                        "မနက်ဖြန် (${Mm.WEEKDAYS[next.weekday]}) — ${content.guna(next.guna).pali} · ${Mm.n(next.rounds)} ပတ်" +
-                            if (next.vegetarian) " · သက်သက်လွတ်နေ့" else "",
-                        style = Type.small.copy(color = Palette.muted),
-                    )
-                } else {
-                    Pill("${Mm.STAGES[day.stage]} အဆင့် ပြီးဆုံး", Palette.jadeSoft, Palette.jade)
-                    model.state.wishes[day.stage]?.takeIf { it.isNotBlank() }?.let {
-                        Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Palette.sunk).padding(12.dp)) {
-                            Text("သင်၏ ဆုတောင်း", style = Type.tiny.copy(color = Palette.muted))
-                            Text(it, style = Type.body.copy(fontWeight = FontWeight.Bold))
-                        }
-                    }
-                    Text("${Mm.STAGES[day.stage]} အဆင့် အောင်မြင်ပြီးပါက", style = Type.tiny.copy(color = Palette.muted))
-                    Text(content.stageBenefits[day.stage], style = Type.body)
-                    if (result == CountResult.StageDone) {
-                        Text("နောက်အဆင့် — ${Mm.STAGES[day.stage + 1]} အဆင့် (${Mm.WEEKDAYS[Kozawin.day(day.index + 1).weekday]}နေ့မှ စ)", style = Type.small.copy(color = Palette.muted))
-                    }
-                }
-            }
-        },
-    )
-}
-
 /** Asked once at the start of each stage; the wish is shown again when the stage is finished. */
 @Composable
 fun WishDialog(stage: Int, onSave: (String) -> Unit) {
@@ -176,15 +130,5 @@ fun MissedDialog(model: AppModel, onDismiss: () -> Unit) {
             }
         },
         confirmButton = { TextButton(onDismiss) { Text("နောက်မှ ဆုံးဖြတ်မည်", style = Type.body.copy(color = Palette.accent)) } },
-    )
-}
-
-@Composable
-fun GoalDialog(onClose: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onClose, containerColor = Palette.surface,
-        title = { Text("ယနေ့ ပန်းတိုင် ပြည့်ပါပြီ", style = Type.heading.copy(color = Palette.accent)) },
-        text = { Text("သာဓု သာဓု သာဓု", style = Type.body) },
-        confirmButton = { PrimaryButton("သာဓု", Modifier.width(120.dp), onClose) },
     )
 }

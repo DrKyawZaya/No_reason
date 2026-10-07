@@ -1,21 +1,22 @@
 package com.satepadee.app.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,143 +26,133 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.satepadee.app.data.AppModel
 import com.satepadee.app.data.Days
 import com.satepadee.app.data.Kozawin
 import com.satepadee.app.data.Mm
+import com.satepadee.app.data.Recitation
 import com.satepadee.app.data.Target
 
+/** Today's guna and one big button; other ပုတီး as simple rows underneath. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HomeScreen(model: AppModel, onCount: (Target) -> Unit) {
+fun HomeScreen(model: AppModel, onSettings: () -> Unit = {}, onAdd: () -> Unit = {}, onCount: (Target) -> Unit) {
     val content = model.content
     val index = model.dayIndex
     val today = model.todayDay()
     var missedOpen by remember(model.today) { mutableStateOf(model.missedDays().isNotEmpty()) }
-    var woodOpen by remember { mutableStateOf(false) }
     var wishFor by remember { mutableStateOf<Int?>(null) }
+    var deleting by remember { mutableStateOf<Recitation?>(null) }
 
     ScreenColumn {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("ယနေ့", style = Type.title, modifier = Modifier.weight(1f))
-            Text("${Mm.WEEKDAYS[Days.weekday(model.today)]}နေ့", style = Type.small.copy(color = Palette.muted))
+            Column(Modifier.weight(1f)) {
+                Text("ယနေ့", style = Type.title)
+                Text("${Mm.WEEKDAYS[Days.weekday(model.today)]}နေ့", style = Type.small.copy(color = Palette.muted))
+            }
+            Box(
+                Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(Palette.surface).border(1.dp, Palette.line, RoundedCornerShape(12.dp))
+                    .clickable(role = Role.Button, onClick = onSettings).semantics { contentDescription = "ဆက်တင်" },
+                contentAlignment = Alignment.Center,
+            ) { GearIcon() }
         }
 
         val missed = model.missedDays()
         if (missed.isNotEmpty()) {
-            Card(border = Palette.warn) {
-                Pill("ရက်ကျော် ${Mm.n(missed.size)} ရက်", Palette.warnSoft, Palette.warn)
-                Text("ရက် ${missed.joinToString("၊ ") { Mm.n(it + 1) }} ကို အက်ပ်တွင် မှတ်တမ်းမရှိပါ။", style = Type.small)
-                SecondaryButton("ဆုံးဖြတ်မည်") { missedOpen = true }
+            Row(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Palette.warnSoft)
+                    .clickable(role = Role.Button) { missedOpen = true }.padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("ရက်ကျော် ${Mm.n(missed.size)} ရက် ရှိပါသည်", style = Type.body.copy(color = Palette.warn), modifier = Modifier.weight(1f))
+                Text("ကြည့်မည် ›", style = Type.small.copy(color = Palette.warn))
             }
         }
 
         when {
             index == null -> Card(border = Palette.accent) {
-                Text(content.kozawinName, style = Type.guna.copy(color = Palette.accent))
-                Text(content.kozawinSummary, style = Type.small.copy(color = Palette.muted))
+                Text(content.kozawinName, style = Type.guna.copy(color = Palette.accent), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text(content.kozawinSummary, style = Type.body.copy(color = Palette.muted))
                 val start = Days.nextMondayOrToday(model.today)
                 Text(
                     if (start == model.today) "ယနေ့ တနင်္လာနေ့ဖြစ်၍ ယနေ့ပင် စတင်နိုင်ပါသည်။"
                     else "တနင်္လာနေ့မှ စတင်ရပါမည်။ ရက် ${Mm.n(start - model.today)} ရက်အကြာ တနင်္လာနေ့တွင် စတင်ပါမည်။",
                     style = Type.body,
                 )
-                PrimaryButton("ကိုးနဝင်း စတင်မည်") { model.start() }
+                PrimaryButton("ကိုးနဝင်း စတင်မည်", Modifier.height(60.dp)) { model.start() }
             }
             index < 0 -> Card(border = Palette.accent) {
-                Text(content.kozawinName, style = Type.guna.copy(color = Palette.accent))
-                Text("ရက် ${Mm.n(-index)} ရက်အကြာ တနင်္လာနေ့တွင် စတင်ပါမည်။", style = Type.body)
-                Text("ပထမနေ့ — ${content.guna(Kozawin.day(0).guna).pali} · ${Mm.n(Kozawin.day(0).rounds)} ပတ်", style = Type.small.copy(color = Palette.muted))
+                Text(content.kozawinName, style = Type.guna.copy(color = Palette.accent), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("ရက် ${Mm.n(-index)} ရက်အကြာ တနင်္လာနေ့တွင် စတင်ပါမည်။", style = Type.body, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Text("ပထမနေ့ — ${content.guna(Kozawin.day(0).guna).pali} · ${Mm.n(Kozawin.day(0).rounds)} ပတ်", style = Type.small.copy(color = Palette.muted), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
             today == null -> Card(border = Palette.accent) {
-                Text("ကိုးနဝင်း ရက် ၈၁ ရက် ပြည့်စုံစွာ ပြီးဆုံးပါပြီ", style = Type.heading.copy(color = Palette.accent))
-                Text("သာဓု သာဓု သာဓု", style = Type.body)
+                Text("ကိုးနဝင်း ရက် ၈၁ ရက် ပြည့်စုံစွာ ပြီးဆုံးပါပြီ", style = Type.heading.copy(color = Palette.accent), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 SecondaryButton("နောက်တစ်ကြိမ် စတင်မည်") { model.start() }
             }
-            else -> TodayCard(model, today) {
+            else -> TodayPanel(model, today) {
                 if (model.state.wishes[today.stage] == null) wishFor = today.stage else onCount(Target.Kozawin)
             }
         }
 
-        if (today != null && today.index + 1 < Kozawin.TOTAL_DAYS && Kozawin.day(today.index + 1).vegetarian) {
-            Card {
-                Pill("သတိပေးချက်", Palette.jadeSoft, Palette.jade)
-                Text("မနက်ဖြန် (${Mm.WEEKDAYS[Kozawin.day(today.index + 1).weekday]}) သည် သက်သက်လွတ် စားရမည့်နေ့ ဖြစ်ပါသည်။", style = Type.body)
-            }
-        }
-
         Card {
-            Text("ကိုယ်ပိုင် ပုတီး", style = Type.heading)
             for (r in model.state.recitations) {
                 val p = model.recitationProgress(r)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(r.name, style = Type.body.copy(fontWeight = FontWeight.Bold))
-                        Text("${Mm.n(p.rounds)} / ${Mm.n(r.dailyRounds)} ပတ်", style = Type.small.copy(color = Palette.muted))
-                    }
-                    GhostButton("စိပ်မည်") { onCount(Target.Custom(r.id)) }
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+                        .combinedClickable(role = Role.Button, onLongClick = { deleting = r }) { onCount(Target.Custom(r.id)) }
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(r.name, style = Type.body.copy(fontWeight = FontWeight.Bold), modifier = Modifier.weight(1f))
+                    Text("${Mm.n(p.rounds)} / ${Mm.n(r.dailyRounds)} ပတ်  ›", style = Type.small.copy(color = Palette.muted))
                 }
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("စိပ်ပုတီး (အလွတ်)", style = Type.body.copy(fontWeight = FontWeight.Bold))
-                    Text("ပန်းတိုင်မရှိ · ${Mm.n(model.state.free.rounds)} ပတ်", style = Type.small.copy(color = Palette.muted))
-                }
-                GhostButton("စိပ်မည်") { onCount(Target.Free) }
             }
             Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button) { woodOpen = true }.padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable(role = Role.Button) { onCount(Target.Free) }.padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                BeadSwatch(model.wood(), Modifier.size(28.dp))
-                Text("ပုတီး — ${model.wood().name}", style = Type.small, modifier = Modifier.weight(1f))
-                Text("ပြောင်းမည်", style = Type.small.copy(color = Palette.accent))
+                Text("စိပ်ပုတီး (အလွတ်)", style = Type.body.copy(fontWeight = FontWeight.Bold), modifier = Modifier.weight(1f))
+                Text("${Mm.n(model.state.free.rounds)} ပတ်  ›", style = Type.small.copy(color = Palette.muted))
             }
+            Text(
+                "+ ပုတီးအသစ်", style = Type.body.copy(color = Palette.accent, fontWeight = FontWeight.Bold),
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable(role = Role.Button, onClick = onAdd).padding(vertical = 8.dp),
+            )
         }
     }
 
     if (missedOpen) MissedDialog(model) { missedOpen = false }
-    if (woodOpen) WoodSheet(model) { woodOpen = false }
     wishFor?.let { stage -> WishDialog(stage) { model.setWish(stage, it); wishFor = null; onCount(Target.Kozawin) } }
+    deleting?.let { r ->
+        AlertDialog(
+            onDismissRequest = { deleting = null }, containerColor = Palette.surface,
+            title = { Text("\"${r.name}\" ကို ဖျက်မလား", style = Type.heading) },
+            confirmButton = { TextButton({ model.deleteRecitation(r.id); deleting = null }) { Text("ဖျက်မည်", style = Type.body.copy(color = Palette.warn)) } },
+            dismissButton = { TextButton({ deleting = null }) { Text("မဖျက်ပါ", style = Type.body.copy(color = Palette.muted)) } },
+        )
+    }
 }
 
 @Composable
-private fun TodayCard(model: AppModel, day: Kozawin.Day, onStart: () -> Unit) {
-    val content = model.content
+private fun TodayPanel(model: AppModel, day: Kozawin.Day, onStart: () -> Unit) {
     val p = model.todayProgress()
     val done = day.index in model.state.done
-    val guna = content.guna(day.guna)
-    Card(border = Palette.accent) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("ကိုးနဝင်း · ${Mm.STAGES[day.stage]} အဆင့် · ရက် ${Mm.n(day.index + 1)}/၈၁", style = Type.small.copy(color = Palette.muted), modifier = Modifier.weight(1f))
-            if (day.vegetarian) Pill("သက်သက်လွတ်နေ့", Palette.jadeSoft, Palette.jade)
-        }
-        Column {
-            Text(guna.pali, style = Type.guna.copy(color = Palette.accent))
-            Text(guna.meaning.first(), style = Type.small.copy(color = Palette.muted))
-        }
-        Row {
-            Text(if (done) "ယနေ့ ပြီးပါပြီ" else "${Mm.n(p.rounds)} / ${Mm.n(day.rounds)} ပတ်", style = Type.small, modifier = Modifier.weight(1f))
-            Text("${Mm.n(day.rounds * Kozawin.BEADS_PER_ROUND)} လုံး", style = Type.small.copy(color = Palette.muted))
-        }
+    Column(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("ကိုးနဝင်း · ရက် ${Mm.n(day.index + 1)} / ၈၁", style = Type.body.copy(color = Palette.muted))
+        Text(model.content.guna(day.guna).pali, style = Type.guna.copy(color = Palette.accent, fontSize = 40.sp, lineHeight = 70.sp), textAlign = TextAlign.Center)
+        Text(if (done) "ယနေ့ ပြီးပါပြီ" else "${Mm.n(p.rounds)} / ${Mm.n(day.rounds)} ပတ်", style = Type.heading)
+        if (day.vegetarian) Pill("ယနေ့ သက်သက်လွတ်နေ့", Palette.jadeSoft, Palette.jade)
         ProgressBar(if (done) 1f else (p.rounds * Kozawin.BEADS_PER_ROUND + p.beads) / (day.rounds * Kozawin.BEADS_PER_ROUND).toFloat())
-        PrimaryButton(if (done) "ထပ်မံ စိပ်မည်" else if (p.beads + p.rounds > 0) "ဆက်စိပ်မည်" else "စိပ်မည်", onClick = onStart)
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            for (i in 0 until Kozawin.DAYS_PER_STAGE) {
-                val d = day.stage * Kozawin.DAYS_PER_STAGE + i
-                val color = when {
-                    d in model.state.done -> Palette.accent
-                    d == day.index -> Palette.accentSoft
-                    else -> Palette.sunk
-                }
-                Box(Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(color).let {
-                    if (d == day.index) it.border(1.dp, Palette.accent, RoundedCornerShape(3.dp)) else it
-                })
-            }
-        }
-        model.state.wishes[day.stage]?.takeIf { it.isNotBlank() }?.let {
-            Text("ဤအဆင့် ဆုတောင်း — $it", style = Type.small, modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Palette.sunk).padding(10.dp))
+        PrimaryButton(if (done) "ထပ်မံ စိပ်မည်" else "စိပ်မည်", Modifier.height(68.dp), onClick = onStart)
+        if (day.index + 1 < Kozawin.TOTAL_DAYS && Kozawin.day(day.index + 1).vegetarian) {
+            Text("မနက်ဖြန် သက်သက်လွတ်နေ့", style = Type.small.copy(color = Palette.jade))
         }
     }
 }

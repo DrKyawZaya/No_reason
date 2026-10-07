@@ -48,6 +48,7 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.satepadee.app.data.AppModel
 import com.satepadee.app.data.CountMode
 import com.satepadee.app.data.CountResult
@@ -58,7 +59,12 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @Composable
-fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
+fun CounterScreen(
+    model: AppModel,
+    target: Target,
+    onFinished: (CountResult, Int?) -> Unit = { _, _ -> },
+    onBack: () -> Unit,
+) {
     val context = LocalContext.current
     val haptics = remember { Haptics(context) }
     val view = LocalView.current
@@ -70,9 +76,7 @@ fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
     val goal = model.targetRounds(target)
     val wood = model.wood()
     val mode = model.state.mode
-    var sheet by remember { mutableStateOf(false) }
-    var finished by remember { mutableStateOf<CountResult?>(null) }
-    var finishedDay by remember { mutableStateOf<Int?>(null) }
+    var showMeaning by remember { mutableStateOf(false) }
 
     val phase = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
@@ -83,46 +87,41 @@ fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
         val r = model.count(target)
         if (r == CountResult.Bead) haptics.tick() else haptics.round()
         if (r == CountResult.DayDone || r == CountResult.StageDone || r == CountResult.ProgramDone || r == CountResult.GoalDone) {
-            finished = r; finishedDay = dayIndex
+            onFinished(r, dayIndex)
         }
     }
 
-    Column(Modifier.fillMaxSize().background(Palette.bg).safeDrawingPadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        Modifier.fillMaxSize().background(Palette.bg).safeDrawingPadding().padding(16.dp).readableWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(
-                Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(Palette.surface).border(1.dp, Palette.line, RoundedCornerShape(12.dp))
+                Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(Palette.surface).border(1.dp, Palette.line, RoundedCornerShape(12.dp))
                     .clickable(role = Role.Button, onClick = onBack).semantics { contentDescription = "နောက်သို့" },
                 contentAlignment = Alignment.Center,
             ) { BackIcon() }
+            Spacer(Modifier.weight(1f))
             Text(
-                when {
-                    day != null -> "${model.content.kozawinName} · ${Mm.STAGES[day.stage]} အဆင့် · ရက် ${Mm.n(day.index + 1)}"
-                    target is Target.Custom -> "ကိုယ်ပိုင် ပုတီး"
-                    else -> "ပန်းတိုင်မရှိ"
-                },
-                style = Type.small.copy(color = Palette.muted), modifier = Modifier.weight(1f),
+                if (goal > 0) "${Mm.n(progress.rounds)} / ${Mm.n(goal)} ပတ်" else "${Mm.n(progress.rounds)} ပတ်",
+                style = Type.heading.copy(color = Palette.muted),
             )
-            Box(
-                Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(Palette.surface).border(1.dp, Palette.line, RoundedCornerShape(12.dp))
-                    .clickable(role = Role.Button) { sheet = true }.semantics { contentDescription = "ပုတီး အမျိုးအစား ရွေးရန်" },
-                contentAlignment = Alignment.Center,
-            ) { BeadSwatch(wood, Modifier.size(26.dp)) }
         }
 
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            val custom = (target as? Target.Custom)?.let { model.recitation(it.id) }
-            when {
-                day != null -> {
-                    val g = model.content.guna(day.guna)
-                    Text(g.pali, style = Type.guna.copy(color = Palette.accent), textAlign = TextAlign.Center)
-                    Text(g.meaning.first(), style = Type.small.copy(color = Palette.muted), textAlign = TextAlign.Center)
-                }
-                custom != null -> {
-                    Text(custom.text.ifBlank { custom.name }, style = Type.guna.copy(color = Palette.accent), textAlign = TextAlign.Center)
-                    if (custom.text.isNotBlank()) Text(custom.name, style = Type.small.copy(color = Palette.muted))
-                }
-                else -> Text("စိပ်ပုတီး (အလွတ်)", style = Type.guna.copy(color = Palette.accent))
-            }
+        // Tap the title to show or hide its meaning; the counting area gets the rest of the screen.
+        val custom = (target as? Target.Custom)?.let { model.recitation(it.id) }
+        val (title, meaning) = when {
+            day != null -> model.content.guna(day.guna).let { it.pali to it.meaning.first() }
+            custom != null -> custom.text.ifBlank { custom.name } to (if (custom.text.isNotBlank()) custom.name else "")
+            else -> "စိပ်ပုတီး (အလွတ်)" to ""
+        }
+        Column(
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                .clickable(enabled = meaning.isNotEmpty(), role = Role.Button) { showMeaning = !showMeaning },
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(title, style = Type.guna.copy(color = Palette.accent), textAlign = TextAlign.Center)
+            if (showMeaning) Text(meaning, style = Type.small.copy(color = Palette.muted), textAlign = TextAlign.Center)
         }
 
         // Counting area: the whole box is the target for taps or swipes.
@@ -167,35 +166,13 @@ fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
         ) {
             BeadStrand(wood, total, { phase.value }, per, Modifier.weight(0.62f).fillMaxHeight())
             Column(Modifier.weight(0.38f).fillMaxHeight(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(Mm.n(progress.beads), style = Type.count.copy(color = Palette.accent))
+                Text(Mm.n(progress.beads), style = Type.count.copy(color = Palette.accent, fontSize = 64.sp, lineHeight = 100.sp))
                 Text("/ ${Mm.n(per)}", style = Type.body.copy(color = Palette.muted))
                 Spacer(Modifier.size(6.dp))
                 ProgressBar(progress.beads / per.toFloat(), Modifier.width(80.dp))
-                Spacer(Modifier.size(10.dp))
-                Text(
-                    if (mode == CountMode.Tap) "နှိပ်တိုင်း ပုတီး တစ်လုံး ရွေ့သည်" else "ပွတ်ဆွဲတိုင်း ပုတီး တစ်လုံး ရွေ့သည်",
-                    style = Type.tiny.copy(color = Palette.muted), textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 8.dp),
-                )
             }
         }
 
-        ModeSwitch(mode) { model.setMode(it) }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
-            if (goal > 0) {
-                repeat(maxOf(goal, progress.rounds)) { i ->
-                    Box(Modifier.size(14.dp).clip(CircleShape).border(2.dp, Palette.accent, CircleShape).background(if (i < progress.rounds) Palette.accent else Palette.bg))
-                }
-                Text("  ${Mm.n(progress.rounds)} / ${Mm.n(goal)} ပတ်", style = Type.small.copy(color = Palette.muted))
-            } else {
-                Text("${Mm.n(progress.rounds)} ပတ်", style = Type.small.copy(color = Palette.muted))
-            }
-        }
-    }
-
-    if (sheet) WoodSheet(model) { sheet = false }
-    finished?.let { r ->
-        if (r == CountResult.GoalDone) GoalDialog { finished = null; onBack() }
-        else FinishedDialog(model, r, Kozawin.day(finishedDay ?: 0), onClose = { finished = null; onBack() })
     }
 }
 

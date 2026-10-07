@@ -19,8 +19,8 @@ import java.util.Calendar
 
 /**
  * One daily alarm at the user's chosen time. Each time it fires it posts today's reminder
- * (and tomorrow's vegetarian-day note) and schedules the next day. Inexact alarms need no
- * special permission and are accurate enough for a morning reminder.
+ * (and tomorrow's vegetarian-day note) and schedules the next day. Uses an exact alarm when
+ * the phone allows it (always below Android 12), otherwise an inexact one that may run late.
  */
 object Reminders {
     private const val CHANNEL = "daily"
@@ -33,7 +33,12 @@ object Reminders {
         val pi = alarmIntent(context)
         alarms.cancel(pi)
         if (!state.reminderOn) return
-        alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, nextTrigger(state.reminderMinutes), pi)
+        val at = nextTrigger(state.reminderMinutes)
+        if (Build.VERSION.SDK_INT < 31 || alarms.canScheduleExactAlarms()) {
+            alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
+        } else {
+            alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
+        }
     }
 
     private fun nextTrigger(minutes: Int): Long {
@@ -89,6 +94,22 @@ object Reminders {
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, n)
     }
 }
+
+/**
+ * Xiaomi (MIUI/HyperOS) and similar phones stop alarms for apps without "Autostart". Opens the
+ * Autostart list on Xiaomi, otherwise this app's system settings page.
+ */
+fun openReminderHelpSettings(context: Context) {
+    val autostart = Intent().setClassName("com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity")
+    val appDetails = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.fromParts("package", context.packageName, null))
+    for (intent in listOf(autostart, appDetails)) {
+        try {
+            context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); return
+        } catch (_: Exception) { }
+    }
+}
+
+val isXiaomiFamily: Boolean get() = Build.MANUFACTURER.lowercase() in setOf("xiaomi", "redmi", "poco")
 
 class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {

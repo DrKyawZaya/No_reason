@@ -46,7 +46,7 @@ fun ChartScreen(model: AppModel) {
             Text("ကိုးနဝင်း ဇယား", style = Type.title, modifier = Modifier.weight(1f))
             Text("${Mm.n(done.size)} / ၈၁ ရက်", style = Type.small.copy(color = Palette.muted))
         }
-        Text("အကွက်ထဲရှိ ဂဏန်းသည် ဂုဏ်တော် အမှတ်စဉ်နှင့် စိပ်ရမည့် ပတ်ရေ ဖြစ်သည်။ အကွက်ကို နှိပ်၍ အသေးစိတ် ကြည့်နိုင်သည်။", style = Type.small.copy(color = Palette.muted))
+        Text("ဂဏန်း = ဂုဏ်တော်နှင့် ပတ်ရေ။ အကွက်ကို နှိပ်၍ ကြည့်ပါ။", style = Type.small.copy(color = Palette.muted))
 
         Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
             for (s in 0 until Kozawin.STAGES) {
@@ -85,25 +85,17 @@ fun ChartScreen(model: AppModel) {
                 Text("${content.guna(d.guna).pali} · ${Mm.n(d.rounds)} ပတ်", style = Type.heading.copy(color = Palette.accent))
                 Text(content.guna(d.guna).meaning.first(), style = Type.small)
                 if (d.vegetarian) Pill("သက်သက်လွတ်နေ့", Palette.jadeSoft, Palette.jade)
+                model.state.wishes[d.stage]?.takeIf { it.isNotBlank() }?.let { Text("${Mm.STAGES[d.stage]} အဆင့် ဆုတောင်း — $it", style = Type.small.copy(color = Palette.muted)) }
                 model.state.start?.let { Text("ပြက္ခဒိန် — ${dateText(it + i)}", style = Type.tiny.copy(color = Palette.muted)) }
             }
         }
 
         Card {
-            Text("အဆင့်များ", style = Type.heading)
-            for (s in 0 until Kozawin.STAGES) {
-                val n = (0 until Kozawin.DAYS_PER_STAGE).count { s * Kozawin.DAYS_PER_STAGE + it in done }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text("${Mm.STAGES[s]} အဆင့်", style = Type.body.copy(fontWeight = FontWeight.Bold))
-                        model.state.wishes[s]?.takeIf { it.isNotBlank() }?.let { Text("ဆုတောင်း — $it", style = Type.tiny.copy(color = Palette.muted)) }
-                    }
-                    if (n == Kozawin.DAYS_PER_STAGE) Pill("ပြီး", Palette.jadeSoft, Palette.jade) else Pill("${Mm.n(n)} / ၉", Palette.sunk, Palette.fg)
-                }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("ဆက်တိုက် ${Mm.n(model.streakDays())} ရက်", style = Type.heading.copy(color = Palette.accent), modifier = Modifier.weight(1f))
+                Text("ယနေ့ ${Mm.n(model.state.history[model.today] ?: 0)} လုံး", style = Type.small.copy(color = Palette.muted))
             }
         }
-
-        HistoryCard(model)
     }
 }
 
@@ -112,37 +104,6 @@ private fun Legend(bg: Color, border: Color, label: String) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
         Box(Modifier.size(12.dp).clip(RoundedCornerShape(3.dp)).background(bg).border(1.5.dp, border, RoundedCornerShape(3.dp)))
         Text(label, style = Type.tiny.copy(color = Palette.muted))
-    }
-}
-
-/** Last 14 days of beads counted, with the current streak. */
-@Composable
-private fun HistoryCard(model: AppModel) {
-    val history = model.state.history
-    val days = (13 downTo 0).map { model.today - it }
-    val max = (days.maxOfOrNull { history[it] ?: 0 } ?: 0).coerceAtLeast(1)
-    Card {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("မှတ်တမ်း", style = Type.heading, modifier = Modifier.weight(1f))
-            Pill("ဆက်တိုက် ${Mm.n(model.streakDays())} ရက်", Palette.accentSoft, Palette.accent)
-        }
-        Text("ယနေ့ ${Mm.n(history[model.today] ?: 0)} လုံး · စုစုပေါင်း ${Mm.n(history.values.sum())} လုံး", style = Type.small.copy(color = Palette.muted))
-        Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
-            for (d in days) {
-                val v = history[d] ?: 0
-                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(
-                        Modifier.fillMaxWidth().size(height = (4 + 56f * v / max).dp, width = 0.dp)
-                            .clip(RoundedCornerShape(3.dp)).background(if (v > 0) Palette.accent else Palette.sunk)
-                            .semantics { contentDescription = "${dateText(d)} ${Mm.n(v)} လုံး" },
-                    )
-                }
-            }
-        }
-        Row {
-            Text(dateText(days.first()), style = Type.tiny.copy(color = Palette.muted), modifier = Modifier.weight(1f))
-            Text("ယနေ့", style = Type.tiny.copy(color = Palette.muted))
-        }
     }
 }
 

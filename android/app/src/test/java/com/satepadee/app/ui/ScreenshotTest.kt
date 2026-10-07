@@ -37,7 +37,7 @@ class ScreenshotTest {
             .putLong("start", Days.today() - 8).putString("done", "0,1,2,3,4,5,6,7")
             .putInt("progressDay", 8).putInt("progressBeads", 40).putInt("progressRounds", 5)
             .putString("wishes", """{"0":"မိသားစု ကျန်းမာ ချမ်းသာပါစေ"}""")
-            .putString("birthDay", "thu")
+            .putString("birthDay", "thu").putBoolean("setupDone", true).putBoolean("reminderOn", true)
             .putString("recitations", """[{"id":"r1","name":"မေတ္တာပို့","text":"သဗ္ဗေ သတ္တာ အဝေရာ ဟောန္တု","perRound":108,"dailyRounds":3}]""")
             .putString("history", (0..13).associate { (Days.today() - it).toString() to (it * 97 % 900) }.let { org.json.JSONObject(it).toString() })
             .commit()
@@ -53,8 +53,14 @@ class ScreenshotTest {
     @Test fun home() { val m = model(); shot("1-home") { HomeScreen(m) {} } }
     @Test fun counterTap() { val m = model(); shot("2-counter") { CounterScreen(m, Target.Kozawin) {} } }
     @Test fun chart() { val m = model(); shot("3-chart") { ChartScreen(m) } }
-    @Test fun custom() { val m = model(); shot("4-custom") { CustomScreen(m) {} } }
-    @Test fun settings() { val m = model(); shot("5-settings") { SettingsScreen(m) } }
+    @Test fun custom() { val m = model(); shot("4-add") { AddRecitationScreen(m) {} } }
+    @Test fun settings() { val m = model(); shot("5-settings") { SettingsScreen(m, onAbout = {}) {} } }
+    @Test fun about() { val m = model(); shot("8-about") { AboutKozawinScreen(m) {} } }
+    @Test fun onboarding() { val m = model(); shot("0-onboarding") { Onboarding(m) {} } }
+    @Test fun finishedDay() { val m = model(); shot("9-finished-day") { FinishedScreen(m, com.satepadee.app.data.CountResult.DayDone, 7) {} } }
+    @Test fun finishedStage() { val m = model(); shot("9-finished-stage") { FinishedScreen(m, com.satepadee.app.data.CountResult.StageDone, 8) {} } }
+    @Config(qualifiers = "w800dp-h1280dp-xhdpi")
+    @Test fun tabletShell() { val m = model(); shot("6-shell-tablet") { AppShell(m) } }
     @Test fun woods() {
         val m = model()
         shot("7-woods") {
