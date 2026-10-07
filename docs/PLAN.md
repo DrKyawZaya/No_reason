@@ -61,7 +61,7 @@ Round / day / stage complete → History → Settings.
 - **App name:** စိပ်ပုတီး.
 - **Counter visual:** a close-up strand of large beads that rolls one bead per count, like pulling a
   real ပုတီး through the fingers. Tap mode rolls one bead per tap; swipe mode lets the user pull the
-  strand down (a long pull moves several beads). Every 108th bead is the guru bead: reaching it
+  strand up or down; one swipe always counts exactly one bead. Every 108th bead is the guru bead: reaching it
   completes a round. No undo.
 - **Bead woods by birth day (နေ့နံ):** user picks their birth day; the matching wood is recommended
   and shown first, but any wood can be chosen. Data in `content/woods.json`:

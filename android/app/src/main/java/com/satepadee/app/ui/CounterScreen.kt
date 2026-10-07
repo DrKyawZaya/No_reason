@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -54,6 +55,7 @@ import com.satepadee.app.data.Kozawin
 import com.satepadee.app.data.Mm
 import com.satepadee.app.data.Target
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @Composable
 fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
@@ -125,11 +127,11 @@ fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
 
         // Counting area: the whole box is the target for taps or swipes.
         Row(
-            Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(24.dp))
+            Modifier.weight(1f).fillMaxWidth().testTag("countArea").clip(RoundedCornerShape(24.dp))
                 .background(Brush.radialGradient(listOf(Palette.surface, Palette.bg)))
                 .border(1.dp, Palette.line, RoundedCornerShape(24.dp))
                 .semantics {
-                    contentDescription = if (mode == CountMode.Tap) "နှိပ်၍ ရေတွက်ပါ" else "အောက်သို့ ပွတ်ဆွဲ၍ ရေတွက်ပါ"
+                    contentDescription = if (mode == CountMode.Tap) "နှိပ်၍ ရေတွက်ပါ" else "ပွတ်ဆွဲ၍ ရေတွက်ပါ"
                     onClick { countOne(); true }
                 }
                 .pointerInput(mode, target) {
@@ -139,12 +141,15 @@ fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
                             scope.launch { phase.snapTo((phase.value - 1f).coerceAtLeast(-3f)); phase.animateTo(0f, spring(dampingRatio = 0.85f, stiffness = 320f)) }
                         })
                     } else {
-                        var drag = 0f
+                        // One swipe = exactly one bead, however long or fast, up or down.
+                        var travel = 0f
+                        var pulled = 0f
                         detectVerticalDragGestures(
-                            onDragStart = { drag = phase.value.coerceAtLeast(0f) },
+                            onDragStart = { travel = 0f; pulled = 0f },
                             onDragEnd = {
+                                val counted = pulled >= 0.35f
                                 scope.launch {
-                                    if (phase.value > 0.35f) { countOne(); phase.snapTo(phase.value - 1f) }
+                                    if (counted) { countOne(); phase.snapTo(phase.value - 1f) }
                                     phase.animateTo(0f, spring(dampingRatio = 0.85f, stiffness = 320f))
                                 }
                             },
@@ -152,9 +157,9 @@ fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
                             onVerticalDrag = { change, dy ->
                                 change.consume()
                                 val sp = strandSpacing(size.height.toFloat(), 76.dp.toPx())
-                                drag = (drag + dy / sp).coerceAtLeast(0f)
-                                while (drag >= 1f) { countOne(); drag -= 1f } // a long pull moves several beads
-                                scope.launch { phase.snapTo(drag) }
+                                travel += dy
+                                pulled = (abs(travel) / sp).coerceAtMost(1f)
+                                scope.launch { phase.snapTo(pulled) }
                             },
                         )
                     }
@@ -168,7 +173,7 @@ fun CounterScreen(model: AppModel, target: Target, onBack: () -> Unit) {
                 ProgressBar(progress.beads / per.toFloat(), Modifier.width(80.dp))
                 Spacer(Modifier.size(10.dp))
                 Text(
-                    if (mode == CountMode.Tap) "နှိပ်တိုင်း ပုတီး တစ်လုံး ရွေ့သည်" else "အောက်သို့ ပွတ်ဆွဲ၍ ပုတီးကို ဆွဲချပါ",
+                    if (mode == CountMode.Tap) "နှိပ်တိုင်း ပုတီး တစ်လုံး ရွေ့သည်" else "ပွတ်ဆွဲတိုင်း ပုတီး တစ်လုံး ရွေ့သည်",
                     style = Type.tiny.copy(color = Palette.muted), textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 8.dp),
                 )
             }
