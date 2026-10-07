@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -42,11 +43,19 @@ private enum class Tab(val label: String) { Home("ယနေ့"), Chart("ဇယ�
  * "သာဓု" screen open full screen over them. First open shows the three setup questions.
  */
 @Composable
-fun AppShell(model: AppModel) {
+fun AppShell(model: AppModel, openTarget: String? = null, onOpened: () -> Unit = {}) {
     var tab by rememberSaveable { mutableStateOf(Tab.Home) }
     var page by rememberSaveable { mutableStateOf<String?>(null) }      // "settings", "about", "add", "edit:<id>"
     var counting by rememberSaveable { mutableStateOf<String?>(null) }  // Target.key
     var finished by rememberSaveable { mutableStateOf<String?>(null) }  // "Result:dayIndex"
+
+    // Opened from a reminder: go straight to that counter.
+    LaunchedEffect(openTarget) {
+        if (openTarget != null) {
+            if (model.state.setupDone) { counting = openTarget; page = null; finished = null }
+            onOpened()
+        }
+    }
 
     if (!model.state.setupDone) { Onboarding(model) { model.completeSetup() }; return }
 

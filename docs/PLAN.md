@@ -94,4 +94,4 @@ Round / day / stage complete → History → Settings.
 - Figma design: https://www.figma.com/design/kboHMgjsGdaUGQxLkyELks
 - Clickable prototype: https://claude.ai/artifact/N2zqp83giaeKZwEhrx665g
 - Canva mockups: https://canva.link/jjicn7pxz4aj7pw · icon draft: https://canva.link/soxphoh3scakwzi
-- Latest test build: 0.3.1 (edit and delete own ပုတီး)
+- Latest test build: 0.3.2 (reminders for own ပုတီး; string through bead holes)

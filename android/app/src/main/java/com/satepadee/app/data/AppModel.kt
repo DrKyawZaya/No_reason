@@ -20,6 +20,9 @@ data class Recitation(
     /** Progress belongs to this epoch day; on any other day it starts from zero. */
     val progressDay: Long = -1,
     val progress: Progress = Progress(),
+    /** Optional daily reminder for this ပုတီး, at [reminderMinutes] after midnight. */
+    val reminderOn: Boolean = false,
+    val reminderMinutes: Int = 5 * 60 + 30,
 )
 
 data class AppState(
@@ -181,18 +184,38 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
         update(state.copy(birthDay = id, woodId = woodId))
     }
 
-    fun addRecitation(name: String, text: String, perRound: Int, dailyRounds: Int) {
-        val r = Recitation("r${System.currentTimeMillis()}", name.trim(), text.trim(), perRound.coerceIn(1, 1000), dailyRounds.coerceIn(1, 999))
+    fun addRecitation(
+        name: String, text: String, perRound: Int, dailyRounds: Int,
+        reminderOn: Boolean = false, reminderMinutes: Int = 5 * 60 + 30,
+    ): String {
+        val r = Recitation(
+            "r${System.currentTimeMillis()}", name.trim(), text.trim(), perRound.coerceIn(1, 1000), dailyRounds.coerceIn(1, 999),
+            reminderOn = reminderOn, reminderMinutes = reminderMinutes,
+        )
         update(state.copy(recitations = state.recitations + r))
+        onRemindersChanged(state)
+        return r.id
     }
 
-    fun updateRecitation(id: String, name: String, text: String, perRound: Int, dailyRounds: Int) = update(state.copy(
-        recitations = state.recitations.map {
-            if (it.id == id) it.copy(name = name.trim(), text = text.trim(), perRound = perRound.coerceIn(1, 1000), dailyRounds = dailyRounds.coerceIn(1, 999)) else it
-        },
-    ))
+    fun updateRecitation(
+        id: String, name: String, text: String, perRound: Int, dailyRounds: Int,
+        reminderOn: Boolean = recitation(id)?.reminderOn ?: false, reminderMinutes: Int = recitation(id)?.reminderMinutes ?: 330,
+    ) {
+        update(state.copy(
+            recitations = state.recitations.map {
+                if (it.id == id) it.copy(
+                    name = name.trim(), text = text.trim(), perRound = perRound.coerceIn(1, 1000), dailyRounds = dailyRounds.coerceIn(1, 999),
+                    reminderOn = reminderOn, reminderMinutes = reminderMinutes,
+                ) else it
+            },
+        ))
+        onRemindersChanged(state)
+    }
 
-    fun deleteRecitation(id: String) = update(state.copy(recitations = state.recitations.filterNot { it.id == id }))
+    fun deleteRecitation(id: String) {
+        update(state.copy(recitations = state.recitations.filterNot { it.id == id }))
+        onRemindersChanged(state)
+    }
 
     fun setReminder(on: Boolean, minutes: Int = state.reminderMinutes, vegetarian: Boolean = state.vegetarianReminder) {
         update(state.copy(reminderOn = on, reminderMinutes = minutes, vegetarianReminder = vegetarian))
@@ -222,6 +245,7 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
                 Recitation(
                     o.getString("id"), o.getString("name"), o.optString("text"), o.getInt("perRound"), o.getInt("dailyRounds"),
                     o.optLong("progressDay", -1), Progress(o.optInt("beads"), o.optInt("rounds")),
+                    o.optBoolean("reminderOn", false), o.optInt("reminderMinutes", 5 * 60 + 30),
                 )
             }
         }.orEmpty(),
@@ -251,6 +275,7 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
                 JSONObject().put("id", it.id).put("name", it.name).put("text", it.text).put("perRound", it.perRound)
                     .put("dailyRounds", it.dailyRounds).put("progressDay", it.progressDay)
                     .put("beads", it.progress.beads).put("rounds", it.progress.rounds)
+                    .put("reminderOn", it.reminderOn).put("reminderMinutes", it.reminderMinutes)
             }).toString())
             putString(K_HISTORY, JSONObject(s.history.mapKeys { it.key.toString() }).toString())
             putBoolean(K_REM_ON, s.reminderOn)

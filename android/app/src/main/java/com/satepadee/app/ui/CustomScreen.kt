@@ -1,6 +1,21 @@
 package com.satepadee.app.ui
 
+import android.Manifest
+import android.app.TimePickerDialog
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,6 +54,10 @@ fun RecitationForm(model: AppModel, editId: String? = null, onDone: () -> Unit) 
     var daily by rememberSaveable { mutableStateOf((existing?.dailyRounds ?: 1).toString()) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var nameMissing by rememberSaveable { mutableStateOf(false) }
+    var remind by rememberSaveable { mutableStateOf(existing?.reminderOn ?: false) }
+    var remindAt by rememberSaveable { mutableIntStateOf(existing?.reminderMinutes ?: (5 * 60 + 30)) }
+    val context = LocalContext.current
+    val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> remind = granted }
 
     Column(Modifier.fillMaxSize().background(Palette.bg).safeDrawingPadding()) {
         ScreenColumn {
@@ -50,11 +69,39 @@ fun RecitationForm(model: AppModel, editId: String? = null, onDone: () -> Unit) 
                 Field("တစ်ပတ်လျှင် လုံးရေ", per, numeric = true, modifier = Modifier.weight(1f)) { per = it.filter(Char::isDigit).take(4) }
                 Field("နေ့စဉ် ပတ်ရေ", daily, numeric = true, modifier = Modifier.weight(1f)) { daily = it.filter(Char::isDigit).take(3) }
             }
+            Card {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("နေ့စဉ် သတိပေးမည်", style = Type.body.copy(fontWeight = FontWeight.Bold), modifier = Modifier.weight(1f))
+                    Switch(
+                        remind,
+                        { on ->
+                            if (on && Build.VERSION.SDK_INT >= 33 &&
+                                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                            ) askPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            else remind = on
+                        },
+                        colors = SwitchDefaults.colors(checkedTrackColor = Palette.accent, checkedThumbColor = Palette.ink, uncheckedTrackColor = Palette.sunk),
+                    )
+                }
+                if (remind) {
+                    Row(
+                        Modifier.fillMaxWidth().clickable(role = Role.Button) {
+                            TimePickerDialog(context, { _, h, m -> remindAt = h * 60 + m }, remindAt / 60, remindAt % 60, false).show()
+                        },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("သတိပေးချိန်", style = Type.body, modifier = Modifier.weight(1f))
+                        Text("${reminderTimeText(remindAt)} ›", style = Type.body.copy(color = Palette.accent, fontWeight = FontWeight.Bold))
+                    }
+                    Text("ယနေ့ ပတ်ရေ ပြည့်ပြီးပါက သတိမပေးပါ။", style = Type.small.copy(color = Palette.muted))
+                }
+            }
             PrimaryButton("သိမ်းမည်", Modifier.height(60.dp)) {
                 if (name.isBlank()) { nameMissing = true; return@PrimaryButton }
                 val p = per.toIntOrNull() ?: 108
                 val d = daily.toIntOrNull() ?: 1
-                if (existing != null) model.updateRecitation(existing.id, name, text, p, d) else model.addRecitation(name, text, p, d)
+                if (existing != null) model.updateRecitation(existing.id, name, text, p, d, remind, remindAt)
+                else model.addRecitation(name, text, p, d, remind, remindAt)
                 onDone()
             }
             if (existing != null) {

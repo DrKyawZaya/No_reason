@@ -77,3 +77,47 @@ class ReminderTest {
         assertNotNull(shadowOf(alarms).nextScheduledAlarm)
     }
 }
+
+/** Each ပုတီး with a reminder gets its own alarm and notification. */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35])
+class RecitationReminderTest {
+    private val context: Application = ApplicationProvider.getApplicationContext()
+    private val nm get() = context.getSystemService(NotificationManager::class.java)
+    private val alarms get() = context.getSystemService(AlarmManager::class.java)
+
+    private fun model(): AppModel {
+        Reminders.prefs(context).edit().clear().putBoolean("setupDone", true).commit()
+        return AppModel(Reminders.prefs(context), Content.load(context)).also { m -> m.onRemindersChanged = { Reminders.reschedule(context, it) } }
+    }
+
+    @Test fun ownPutteeReminderSchedulesAndPosts() {
+        shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        val m = model()
+        val id = m.addRecitation("မေတ္တာပို့", "သဗ္ဗေ သတ္တာ", 108, 3, reminderOn = true, reminderMinutes = 20 * 60)
+        assertEquals(1, shadowOf(alarms).scheduledAlarms.size)
+
+        val fire = shadowOf(alarms).scheduledAlarms.single().operation
+        val intent = shadowOf(fire).savedIntent
+        ReminderReceiver().onReceive(context, intent)
+        val n = shadowOf(nm).allNotifications.single()
+        assertEquals("မေတ္တာပို့", n.extras.getString(NotificationCompat.EXTRA_TITLE))
+        assertTrue(n.extras.getCharSequence(NotificationCompat.EXTRA_TEXT).toString().startsWith("ယနေ့ ၀ / ၃ ပတ်"))
+
+        // Turning the main ကိုးနဝင်း reminder on adds a second, separate alarm.
+        m.setReminder(true)
+        assertEquals(2, shadowOf(alarms).scheduledAlarms.size)
+        // Deleting the ပုတီး cancels its alarm.
+        m.deleteRecitation(id)
+        assertEquals(1, shadowOf(alarms).scheduledAlarms.size)
+    }
+
+    @Test fun noReminderWhenTodayIsDone() {
+        shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        val m = model()
+        val id = m.addRecitation("ဂုဏ်တော်", "", 2, 1, reminderOn = true)
+        m.count(com.satepadee.app.data.Target.Custom(id)); m.count(com.satepadee.app.data.Target.Custom(id))
+        Reminders.post(context, id)
+        assertEquals(0, shadowOf(nm).allNotifications.size)
+    }
+}

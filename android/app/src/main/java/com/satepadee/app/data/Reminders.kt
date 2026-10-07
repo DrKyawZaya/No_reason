@@ -28,12 +28,26 @@ object Reminders {
 
     fun prefs(context: Context) = context.getSharedPreferences("satepadee", Context.MODE_PRIVATE)
 
+    private const val EXTRA_RECITATION = "recitation"
+    private const val K_SCHEDULED = "scheduledRecitationAlarms"
+
+    /** Sets (or cancels) the ကိုးနဝင်း alarm and one alarm per ပုတီး that has a reminder. */
     fun reschedule(context: Context, state: AppState) {
         val alarms = context.getSystemService(AlarmManager::class.java) ?: return
-        val pi = alarmIntent(context)
-        alarms.cancel(pi)
-        if (!state.reminderOn) return
-        val at = nextTrigger(state.reminderMinutes)
+        val main = alarmIntent(context, null)
+        alarms.cancel(main)
+        if (state.reminderOn) setAlarm(alarms, nextTrigger(state.reminderMinutes), main)
+
+        // Cancel alarms of ပုတီး that were deleted or switched off, then set the current ones.
+        val prefs = prefs(context)
+        val before = prefs.getString(K_SCHEDULED, "").orEmpty().split(',').filter { it.isNotEmpty() }
+        before.forEach { alarms.cancel(alarmIntent(context, it)) }
+        val now = state.recitations.filter { it.reminderOn }
+        now.forEach { setAlarm(alarms, nextTrigger(it.reminderMinutes), alarmIntent(context, it.id)) }
+        prefs.edit().putString(K_SCHEDULED, now.joinToString(",") { it.id }).apply()
+    }
+
+    private fun setAlarm(alarms: AlarmManager, at: Long, pi: PendingIntent) {
         if (Build.VERSION.SDK_INT < 31 || alarms.canScheduleExactAlarms()) {
             alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
         } else {
@@ -50,10 +64,25 @@ object Reminders {
         return c.timeInMillis
     }
 
-    private fun alarmIntent(context: Context): PendingIntent = PendingIntent.getBroadcast(
-        context, 0, Intent(context, ReminderReceiver::class.java),
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-    )
+    /** Each ပုတီး gets its own alarm (distinct action and request code); null is the ကိုးနဝင်း alarm. */
+    private fun alarmIntent(context: Context, recitationId: String?): PendingIntent {
+        val intent = Intent(context, ReminderReceiver::class.java)
+        if (recitationId != null) intent.setAction("reminder:$recitationId").putExtra(EXTRA_RECITATION, recitationId)
+        return PendingIntent.getBroadcast(
+            context, recitationId?.hashCode() ?: 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
+    fun recitationIdOf(intent: Intent): String? = intent.getStringExtra(EXTRA_RECITATION)
+
+    /** Message for one ပုတီး; null when today's rounds are already done. */
+    fun message(model: AppModel, recitationId: String): Pair<String, String>? {
+        val r = model.recitation(recitationId) ?: return null
+        val p = model.recitationProgress(r)
+        if (p.rounds >= r.dailyRounds) return null
+        val text = "ယနေ့ ${Mm.n(p.rounds)} / ${Mm.n(r.dailyRounds)} ပတ်" + if (r.text.isNotBlank()) " · ${r.text}" else ""
+        return r.name to text
+    }
 
     /** Builds the message from today's state; null when there is nothing to remind about. */
     fun message(model: AppModel): Pair<String, String>? {
@@ -73,16 +102,21 @@ object Reminders {
         }
     }
 
-    fun post(context: Context) {
+    fun post(context: Context, recitationId: String? = null) {
         val model = AppModel(prefs(context), Content.load(context))
-        val (title, text) = message(model) ?: return
+        val (title, text) = (if (recitationId != null) message(model, recitationId) else message(model)) ?: return
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) return
         val nm = context.getSystemService(NotificationManager::class.java)
         if (Build.VERSION.SDK_INT >= 26) nm.createNotificationChannel(NotificationChannel(CHANNEL, "နေ့စဉ် သတိပေးချက်", NotificationManager.IMPORTANCE_DEFAULT))
+        // A ပုတီး reminder opens its counter; the ကိုးနဝင်း reminder opens Home (so a new stage still asks for the wish).
+        val launch = Intent(context, MainActivity::class.java)
+        recitationId?.let { launch.putExtra(MainActivity.EXTRA_TARGET, Target.Custom(it).key) }
         val open = PendingIntent.getActivity(
-            context, 0, Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            context, recitationId?.hashCode() ?: 0,
+            launch
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val n = NotificationCompat.Builder(context, CHANNEL)
@@ -91,7 +125,7 @@ object Reminders {
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(open).setAutoCancel(true)
             .build()
-        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, n)
+        NotificationManagerCompat.from(context).notify(recitationId?.hashCode() ?: NOTIFICATION_ID, n)
     }
 }
 
@@ -113,7 +147,7 @@ val isXiaomiFamily: Boolean get() = Build.MANUFACTURER.lowercase() in setOf("xia
 
 class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Reminders.post(context)
+        Reminders.post(context, Reminders.recitationIdOf(intent))
         val model = AppModel(Reminders.prefs(context), Content.load(context))
         Reminders.reschedule(context, model.state)
     }

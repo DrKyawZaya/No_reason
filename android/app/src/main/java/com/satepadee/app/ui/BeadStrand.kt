@@ -40,6 +40,14 @@ fun BeadStrand(wood: Wood, count: Int, phase: () -> Float, perRound: Int, modifi
             val th = slot * sp / radius
             return Triple(cx - radius * (1 - cos(th)) * 0.6f, size.height / 2 + radius * sin(th), 1 - min(0.42f, abs(slot) * 0.09f))
         }
+        // Direction of the string at a slot (unit vector), so each bead's holes sit on the string.
+        fun along(slot: Float): Offset {
+            val th = slot * sp / radius
+            val dx = -0.6f * sin(th)
+            val dy = cos(th)
+            val len = kotlin.math.sqrt(dx * dx + dy * dy)
+            return Offset(dx / len, dy / len)
+        }
 
         val string = Path()
         var k = -7f
@@ -63,7 +71,7 @@ fun BeadStrand(wood: Wood, count: Int, phase: () -> Float, perRound: Int, modifi
             val r = sp * 0.48f * sc * (if (guru) 1.3f else 1f)
             val fade = max(0f, 1 - max(0f, abs(slot) - 3.2f) * 0.45f)
             if (fade <= 0f) continue
-            drawBead(wood, Offset(x, y), r, lit = b <= count, now = abs(slot) < 0.5f, alpha = fade, seed = b)
+            drawBead(wood, Offset(x, y), r, lit = b <= count, now = abs(slot) < 0.5f, alpha = fade, seed = b, axis = along(slot), string = wood.lo, stringWidth = 2.5.dp.toPx())
             if (guru) drawTassel(wood.mid, Offset(x, y + r * 0.9f), r, fade)
         }
     }
@@ -78,6 +86,7 @@ fun strandSpacing(height: Float, maxSpacing: Float) = min(maxSpacing, height / 6
  */
 private fun DrawScope.drawBead(
     w: Wood, c: Offset, r: Float, lit: Boolean, now: Boolean, alpha: Float, glow: Boolean = true, seed: Int = 0,
+    axis: Offset = Offset(0f, 1f), string: Color? = null, stringWidth: Float = 0f,
 ) {
     if (lit && glow) {
         val g = if (now) 2.0f else 1.55f
@@ -123,8 +132,20 @@ private fun DrawScope.drawBead(
         Brush.radialGradient(listOf(Color.White.copy(alpha = 0.22f), Color.Transparent), Offset(c.x - r * 0.36f, c.y - r * 0.42f), r * 0.6f),
         r, c, alpha = alpha,
     )
-    // Drilled hole where the string enters the bead.
-    drawOval(Color.Black.copy(alpha = 0.55f * alpha), Offset(c.x - r * 0.13f, c.y - r * 1.0f), Size(r * 0.26f, r * 0.12f))
+    // Drilled holes at both ends of the string's path, turned to face along the string,
+    // with the string running into each one.
+    val angle = Math.toDegrees(kotlin.math.atan2(axis.y.toDouble(), axis.x.toDouble())).toFloat() - 90f
+    for (side in listOf(-1f, 1f)) {
+        val h = Offset(c.x + axis.x * side * r * 0.93f, c.y + axis.y * side * r * 0.93f)
+        rotate(angle, h) {
+            drawOval(Color.Black.copy(alpha = 0.6f * alpha), Offset(h.x - r * 0.16f, h.y - r * 0.07f), Size(r * 0.32f, r * 0.14f))
+            drawOval(w.lo.copy(alpha = 0.5f * alpha), Offset(h.x - r * 0.16f, h.y - r * 0.07f), Size(r * 0.32f, r * 0.14f), style = Stroke(r * 0.025f))
+        }
+        if (string != null) {
+            val out = Offset(h.x + axis.x * side * r * 0.2f, h.y + axis.y * side * r * 0.2f)
+            drawLine(string.copy(alpha = alpha), h, out, strokeWidth = stringWidth, cap = StrokeCap.Round)
+        }
+    }
     if (!lit) drawCircle(Color.Black.copy(alpha = 0.42f * alpha), r, c)
 }
 
