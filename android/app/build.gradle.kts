@@ -11,8 +11,8 @@ android {
         applicationId = "com.satepadee.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 7
-        versionName = "0.3.2"
+        versionCode = 8
+        versionName = "0.3.3"
     }
 
     buildTypes {

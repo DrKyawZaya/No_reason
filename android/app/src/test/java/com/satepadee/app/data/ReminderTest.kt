@@ -43,6 +43,7 @@ class ReminderTest {
         val n = posted.single()
         assertEquals("ကိုးနဝင်း · ပထမ အဆင့် · ရက် ၅", n.extras.getString(NotificationCompat.EXTRA_TITLE))
         assertTrue(n.extras.getCharSequence(NotificationCompat.EXTRA_TEXT).toString().startsWith("ယနေ့ လောကဝိဒူ · ၅ ပတ် · သက်သက်လွတ်နေ့"))
+        assertEquals(android.app.Notification.VISIBILITY_PUBLIC, n.visibility)
 
         val next = shadowOf(alarms).nextScheduledAlarm
         assertNotNull(next)

@@ -124,6 +124,9 @@ object Reminders {
             .setContentTitle(title).setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(open).setAutoCancel(true)
+            // Nothing private in a reminder, so show the full text on the lock screen.
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .build()
         NotificationManagerCompat.from(context).notify(recitationId?.hashCode() ?: NOTIFICATION_ID, n)
     }
