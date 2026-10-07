@@ -91,8 +91,8 @@ class StoreAssetsTest {
     @Test fun launcherFull() { val w = wood(); art("launcher-full-192", 192, 192) { IconArt(w, Modifier.fillMaxSize(), scale = 0.9f) } }
     // Adaptive icon layer: 108dp canvas, art kept inside the 66dp safe circle.
     // Rendered over black and over white; tools/icon_layers.py recovers the transparency from the pair.
-    @Test fun launcherForegroundBlack() { val w = wood(); art("launcher-foreground-on-black", 432, 432) { IconArt(w, Modifier.fillMaxSize(), matte = Color.Black, scale = 0.7f) } }
-    @Test fun launcherForegroundWhite() { val w = wood(); art("launcher-foreground-on-white", 432, 432) { IconArt(w, Modifier.fillMaxSize(), matte = Color.White, scale = 0.7f) } }
+    @Test fun launcherForegroundBlack() { val w = wood(); art("launcher-foreground-on-black", 432, 432) { IconArt(w, Modifier.fillMaxSize(), matte = Color.Black, scale = 0.66f) } }
+    @Test fun launcherForegroundWhite() { val w = wood(); art("launcher-foreground-on-white", 432, 432) { IconArt(w, Modifier.fillMaxSize(), matte = Color.White, scale = 0.66f) } }
 
     @Test fun featureGraphic() { val w = wood(); art("feature-1024x500", 1024, 500) { FeatureArt(w) } }
 
@@ -121,7 +121,7 @@ class StoreAssetsTest {
 private fun DrawScope.beadRing(wood: Wood, center: Offset, s: Float, beads: Int = 12) {
     val ring = s * 0.30f
     val r = s * 0.071f
-    val cy = center.y - s * 0.05f
+    val cy = center.y
     drawCircle(wood.lo, ring, Offset(center.x, cy), style = Stroke(s * 0.012f))
     for (i in 1 until beads) {
         val th = PI / 2 + i * 2 * PI / beads
@@ -147,7 +147,7 @@ private fun DrawScope.tassel(top: Offset, g: Float) {
 private fun IconArt(wood: Wood, modifier: Modifier, scale: Float, matte: Color? = null) {
     Canvas(modifier) {
         if (matte != null) drawRect(matte)
-        else drawRect(Brush.radialGradient(listOf(Color(0xFF3D2815), Palette.bg), Offset(center.x, center.y * 0.8f), size.minDimension * 0.75f))
+        else drawRect(Brush.radialGradient(listOf(Color(0xFF3D2815), Palette.bg), center, size.minDimension * 0.75f))
         beadRing(wood, center, size.minDimension * scale)
     }
 }
