@@ -1,7 +1,11 @@
 package com.satepadee.app.ui
 
 import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.test.core.app.ApplicationProvider
@@ -18,6 +22,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /** Renders each screen to build/screenshots so layouts can be checked without a device. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35], qualifiers = "w390dp-h844dp-xxhdpi")
@@ -50,5 +55,22 @@ class ScreenshotTest {
     @Test fun chart() { val m = model(); shot("3-chart") { ChartScreen(m) } }
     @Test fun custom() { val m = model(); shot("4-custom") { CustomScreen(m) {} } }
     @Test fun settings() { val m = model(); shot("5-settings") { SettingsScreen(m) } }
+    @Test fun woods() {
+        val m = model()
+        shot("7-woods") {
+            androidx.compose.foundation.layout.FlowRow(
+                androidx.compose.ui.Modifier.background(Palette.bg).padding(12.dp),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp),
+            ) {
+                for (w in m.content.woods) {
+                    androidx.compose.foundation.layout.Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+                        BeadSwatch(w, androidx.compose.ui.Modifier.size(110.dp))
+                        androidx.compose.material3.Text(w.name, style = Type.small)
+                    }
+                }
+            }
+        }
+    }
     @Test fun shell() { val m = model(); shot("6-shell") { AppShell(m) } }
 }
