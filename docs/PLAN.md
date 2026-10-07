@@ -73,7 +73,7 @@ Round / day / stage complete → History → Settings.
 - 2 tabs (ယနေ့, ဇယား) and a ⚙ settings page; reference text on a separate "ကိုးနဝင်း အကြောင်း" page.
 - First open asks 3 questions, one per screen: birth day (wood picked), tap or swipe, reminder time.
 - Home: today's guna, rounds, one big စိပ်မည် button; other ပုတီး as rows; "+ ပုတီးအသစ်" opens a short form;
-  long-press a row to delete it.
+  each own ပုတီး has a "ပြင်" button that opens the form to edit or delete it.
 - Counter: title (tap for meaning), beads and big count only. Finishing shows a full "သာဓု" screen.
 - Reminders: exact alarm when allowed; settings link to Xiaomi "Autostart" (owner uses Redmi Note 7 and Mi Pad 5).
 - Tablets: content limited to a 560dp centred column.
@@ -94,4 +94,4 @@ Round / day / stage complete → History → Settings.
 - Figma design: https://www.figma.com/design/kboHMgjsGdaUGQxLkyELks
 - Clickable prototype: https://claude.ai/artifact/N2zqp83giaeKZwEhrx665g
 - Canva mockups: https://canva.link/jjicn7pxz4aj7pw · icon draft: https://canva.link/soxphoh3scakwzi
-- Latest test build: 0.3.0 (simplified design, wooden beads)
+- Latest test build: 0.3.1 (edit and delete own ပုတီး)

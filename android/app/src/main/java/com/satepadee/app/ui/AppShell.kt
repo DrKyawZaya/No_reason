@@ -44,7 +44,7 @@ private enum class Tab(val label: String) { Home("ယနေ့"), Chart("ဇယ�
 @Composable
 fun AppShell(model: AppModel) {
     var tab by rememberSaveable { mutableStateOf(Tab.Home) }
-    var page by rememberSaveable { mutableStateOf<String?>(null) }      // "settings", "about", "add"
+    var page by rememberSaveable { mutableStateOf<String?>(null) }      // "settings", "about", "add", "edit:<id>"
     var counting by rememberSaveable { mutableStateOf<String?>(null) }  // Target.key
     var finished by rememberSaveable { mutableStateOf<String?>(null) }  // "Result:dayIndex"
 
@@ -63,14 +63,15 @@ fun AppShell(model: AppModel) {
     when (page) {
         "settings" -> { SettingsScreen(model, onAbout = { page = "about" }) { page = null }; return }
         "about" -> { AboutKozawinScreen(model) { page = "settings" }; return }
-        "add" -> { AddRecitationScreen(model) { page = null }; return }
+        "add" -> { RecitationForm(model) { page = null }; return }
     }
+    page?.takeIf { it.startsWith("edit:") }?.let { p -> RecitationForm(model, editId = p.removePrefix("edit:")) { page = null }; return }
     BackHandler(enabled = tab != Tab.Home) { tab = Tab.Home }
 
     Column(Modifier.fillMaxSize().background(Palette.bg).statusBarsPadding()) {
         Box(Modifier.weight(1f)) {
             when (tab) {
-                Tab.Home -> HomeScreen(model, onSettings = { page = "settings" }, onAdd = { page = "add" }) { counting = it.key }
+                Tab.Home -> HomeScreen(model, onSettings = { page = "settings" }, onAdd = { page = "add" }, onEdit = { page = "edit:$it" }) { counting = it.key }
                 Tab.Chart -> ChartScreen(model)
             }
         }

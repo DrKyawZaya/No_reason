@@ -5,6 +5,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.swipe
 import androidx.compose.ui.test.click
 import androidx.test.core.app.ApplicationProvider
@@ -57,5 +61,41 @@ class CountGestureTest {
         repeat(5) { rule.onNodeWithTag("countArea").performTouchInput { click(center) } }
         rule.waitForIdle()
         assertEquals(5, m.state.free.beads)
+    }
+}
+
+/** Add, edit and delete a ပုတီး through the form, as the user would. */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35], qualifiers = "w390dp-h844dp-xxhdpi")
+class RecitationFormTest {
+    @get:Rule val rule = createComposeRule()
+
+    private fun model(): AppModel {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val prefs = context.getSharedPreferences("form", Context.MODE_PRIVATE)
+        prefs.edit().clear().putBoolean("setupDone", true).commit()
+        return AppModel(prefs, Content.load(context))
+    }
+
+    @Test fun addEditDelete() {
+        val m = model()
+        m.addRecitation("မေတ္တာပို့", "သဗ္ဗေ သတ္တာ", 108, 3)
+        val id = m.state.recitations.single().id
+        rule.setContent { SatePaDeeTheme { AppShell(m) } }
+
+        rule.onNodeWithText("ပြင်").performClick()
+        rule.onNodeWithText("ပုတီး ပြင်ရန်").assertExists()
+        rule.onNodeWithText("မေတ္တာပို့").performTextReplacement("မေတ္တာ")
+        rule.onNodeWithText("3").performTextReplacement("5")
+        rule.onNodeWithText("သိမ်းမည်").performClick()
+        rule.waitForIdle()
+        assertEquals("မေတ္တာ", m.recitation(id)!!.name)
+        assertEquals(5, m.recitation(id)!!.dailyRounds)
+
+        rule.onNodeWithText("ပြင်").performClick()
+        rule.onNodeWithText("ဤပုတီးကို ဖျက်မည်").performScrollTo().performClick()
+        rule.onNodeWithText("ဖျက်မည်").performClick()
+        rule.waitForIdle()
+        assertEquals(0, m.state.recitations.size)
     }
 }

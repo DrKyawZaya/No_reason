@@ -186,6 +186,12 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
         update(state.copy(recitations = state.recitations + r))
     }
 
+    fun updateRecitation(id: String, name: String, text: String, perRound: Int, dailyRounds: Int) = update(state.copy(
+        recitations = state.recitations.map {
+            if (it.id == id) it.copy(name = name.trim(), text = text.trim(), perRound = perRound.coerceIn(1, 1000), dailyRounds = dailyRounds.coerceIn(1, 999)) else it
+        },
+    ))
+
     fun deleteRecitation(id: String) = update(state.copy(recitations = state.recitations.filterNot { it.id == id }))
 
     fun setReminder(on: Boolean, minutes: Int = state.reminderMinutes, vegetarian: Boolean = state.vegetarianReminder) {

@@ -1,10 +1,8 @@
 package com.satepadee.app.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,9 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,19 +32,16 @@ import com.satepadee.app.data.AppModel
 import com.satepadee.app.data.Days
 import com.satepadee.app.data.Kozawin
 import com.satepadee.app.data.Mm
-import com.satepadee.app.data.Recitation
 import com.satepadee.app.data.Target
 
 /** Today's guna and one big button; other ပုတီး as simple rows underneath. */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HomeScreen(model: AppModel, onSettings: () -> Unit = {}, onAdd: () -> Unit = {}, onCount: (Target) -> Unit) {
+fun HomeScreen(model: AppModel, onSettings: () -> Unit = {}, onAdd: () -> Unit = {}, onEdit: (String) -> Unit = {}, onCount: (Target) -> Unit) {
     val content = model.content
     val index = model.dayIndex
     val today = model.todayDay()
     var missedOpen by remember(model.today) { mutableStateOf(model.missedDays().isNotEmpty()) }
     var wishFor by remember { mutableStateOf<Int?>(null) }
-    var deleting by remember { mutableStateOf<Recitation?>(null) }
 
     ScreenColumn {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -104,14 +97,19 @@ fun HomeScreen(model: AppModel, onSettings: () -> Unit = {}, onAdd: () -> Unit =
         Card {
             for (r in model.state.recitations) {
                 val p = model.recitationProgress(r)
-                Row(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
-                        .combinedClickable(role = Role.Button, onLongClick = { deleting = r }) { onCount(Target.Custom(r.id)) }
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(r.name, style = Type.body.copy(fontWeight = FontWeight.Bold), modifier = Modifier.weight(1f))
-                    Text("${Mm.n(p.rounds)} / ${Mm.n(r.dailyRounds)} ပတ်  ›", style = Type.small.copy(color = Palette.muted))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).clickable(role = Role.Button) { onCount(Target.Custom(r.id)) }.padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(r.name, style = Type.body.copy(fontWeight = FontWeight.Bold), modifier = Modifier.weight(1f))
+                        Text("${Mm.n(p.rounds)} / ${Mm.n(r.dailyRounds)} ပတ်  ›", style = Type.small.copy(color = Palette.muted))
+                    }
+                    Text(
+                        "ပြင်", style = Type.small.copy(color = Palette.accent, fontWeight = FontWeight.Bold),
+                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Palette.sunk)
+                            .clickable(role = Role.Button) { onEdit(r.id) }.padding(horizontal = 14.dp, vertical = 6.dp),
+                    )
                 }
             }
             Row(
@@ -130,14 +128,6 @@ fun HomeScreen(model: AppModel, onSettings: () -> Unit = {}, onAdd: () -> Unit =
 
     if (missedOpen) MissedDialog(model) { missedOpen = false }
     wishFor?.let { stage -> WishDialog(stage) { model.setWish(stage, it); wishFor = null; onCount(Target.Kozawin) } }
-    deleting?.let { r ->
-        AlertDialog(
-            onDismissRequest = { deleting = null }, containerColor = Palette.surface,
-            title = { Text("\"${r.name}\" ကို ဖျက်မလား", style = Type.heading) },
-            confirmButton = { TextButton({ model.deleteRecitation(r.id); deleting = null }) { Text("ဖျက်မည်", style = Type.body.copy(color = Palette.warn)) } },
-            dismissButton = { TextButton({ deleting = null }) { Text("မဖျက်ပါ", style = Type.body.copy(color = Palette.muted)) } },
-        )
-    }
 }
 
 @Composable

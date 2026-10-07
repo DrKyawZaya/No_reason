@@ -53,7 +53,8 @@ class ScreenshotTest {
     @Test fun home() { val m = model(); shot("1-home") { HomeScreen(m) {} } }
     @Test fun counterTap() { val m = model(); shot("2-counter") { CounterScreen(m, Target.Kozawin) {} } }
     @Test fun chart() { val m = model(); shot("3-chart") { ChartScreen(m) } }
-    @Test fun custom() { val m = model(); shot("4-add") { AddRecitationScreen(m) {} } }
+    @Test fun custom() { val m = model(); shot("4-add") { RecitationForm(m) {} } }
+    @Test fun edit() { val m = model(); shot("4-edit") { RecitationForm(m, editId = "r1") {} } }
     @Test fun settings() { val m = model(); shot("5-settings") { SettingsScreen(m, onAbout = {}) {} } }
     @Test fun about() { val m = model(); shot("8-about") { AboutKozawinScreen(m) {} } }
     @Test fun onboarding() { val m = model(); shot("0-onboarding") { Onboarding(m) {} } }
