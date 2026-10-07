@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
@@ -61,6 +62,20 @@ class CountGestureTest {
         repeat(5) { rule.onNodeWithTag("countArea").performTouchInput { click(center) } }
         rule.waitForIdle()
         assertEquals(5, m.state.free.beads)
+    }
+
+    @Test fun freeCounterResetsAfterConfirm() {
+        val m = model(CountMode.Tap)
+        rule.setContent { SatePaDeeTheme { CounterScreen(m, Target.Free) {} } }
+        repeat(3) { rule.onNodeWithTag("countArea").performTouchInput { click(center) } }
+        rule.onNodeWithText("ပြန်စမည်").performClick()
+        rule.onNodeWithText("မစပါ").performClick()
+        assertEquals(3, m.state.free.beads)
+        rule.onNodeWithText("ပြန်စမည်").performClick()
+        rule.onAllNodesWithText("ပြန်စမည်")[1].performClick()
+        rule.waitForIdle()
+        assertEquals(0, m.state.free.beads)
+        assertEquals(0, m.state.free.rounds)
     }
 }
 

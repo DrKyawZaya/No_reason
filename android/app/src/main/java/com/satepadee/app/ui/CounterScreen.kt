@@ -26,7 +26,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -46,6 +48,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -77,6 +80,7 @@ fun CounterScreen(
     val wood = model.wood()
     val mode = model.state.mode
     var showMeaning by remember { mutableStateOf(false) }
+    var confirmReset by remember { mutableStateOf(false) }
 
     val phase = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
@@ -106,6 +110,13 @@ fun CounterScreen(
                 if (goal > 0) "${Mm.n(progress.rounds)} / ${Mm.n(goal)} ပတ်" else "${Mm.n(progress.rounds)} ပတ်",
                 style = Type.heading.copy(color = Palette.muted),
             )
+            if (target == Target.Free && total > 0) {
+                Text(
+                    "ပြန်စမည်", style = Type.small.copy(color = Palette.accent, fontWeight = FontWeight.Bold),
+                    modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Palette.surface).border(1.dp, Palette.line, RoundedCornerShape(10.dp))
+                        .clickable(role = Role.Button) { confirmReset = true }.padding(horizontal = 14.dp, vertical = 10.dp),
+                )
+            }
         }
 
         // Tap the title to show or hide its meaning; the counting area gets the rest of the screen.
@@ -172,7 +183,16 @@ fun CounterScreen(
                 ProgressBar(progress.beads / per.toFloat(), Modifier.width(80.dp))
             }
         }
+    }
 
+    if (confirmReset) {
+        AlertDialog(
+            onDismissRequest = { confirmReset = false }, containerColor = Palette.surface,
+            title = { Text("သုညမှ ပြန်စမလား", style = Type.heading) },
+            text = { Text("${Mm.n(progress.rounds)} ပတ်နှင့် ${Mm.n(progress.beads)} လုံး ပျက်ပါမည်။", style = Type.body.copy(color = Palette.muted)) },
+            confirmButton = { TextButton({ model.resetFree(); confirmReset = false }) { Text("ပြန်စမည်", style = Type.body.copy(color = Palette.warn)) } },
+            dismissButton = { TextButton({ confirmReset = false }) { Text("မစပါ", style = Type.body.copy(color = Palette.muted)) } },
+        )
     }
 }
 

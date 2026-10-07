@@ -52,6 +52,7 @@ class ScreenshotTest {
 
     @Test fun home() { val m = model(); shot("1-home") { HomeScreen(m) {} } }
     @Test fun counterTap() { val m = model(); shot("2-counter") { CounterScreen(m, Target.Kozawin) {} } }
+    @Test fun counterFree() { val m = model(); m.count(Target.Free); shot("2-counter-free") { CounterScreen(m, Target.Free) {} } }
     @Test fun chart() { val m = model(); shot("3-chart") { ChartScreen(m) } }
     @Test fun custom() { val m = model(); shot("4-add") { RecitationForm(m) {} } }
     @Test fun edit() { val m = model(); shot("4-edit") { RecitationForm(m, editId = "r1") {} } }

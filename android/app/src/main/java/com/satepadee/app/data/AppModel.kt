@@ -167,6 +167,9 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
     /** "I recited without the app" — count every missed day as done. */
     fun markMissedDone() = update(state.copy(done = state.done + missedDays()))
 
+    /** Set the free counter back to zero. Today's total in the history is kept. */
+    fun resetFree() = update(state.copy(free = Progress()))
+
     /** Start the stage of the first missed day again, from today. */
     fun restartStage() {
         val first = missedDays().firstOrNull() ?: return
