@@ -60,10 +60,10 @@ a {{ color:var(--accent) }}
 <main>
 <header class="hero"><img src="icon-512.png" alt="စိပ်ပုတီး app icon">
 <div><h1>Uploading <span class="mm">စိပ်ပုတီး</span> to Google Play</h1>
-<p class="sub">Version 1.0.0 (code 9) · package <code>com.satepadee.app</code> · every text below is ready to paste.</p></div></header>
+<p class="sub">Version 1.0.0 (version code 11) · package <code>com.satepadee.app</code> · every text below is ready to paste.</p></div></header>
 
 <section><h2><span class="n">1</span>Check the release build on your phone</h2>
-<p>The release build is smaller and optimised, so install <code>satepadee-1.0.0-release.apk</code> on your Redmi Note 7 or Mi Pad 5 first. Count a few beads, open every screen, set a reminder one minute ahead. If anything looks wrong, tell me before uploading.</p></section>
+<p>The release build is smaller and optimised, so install <code>satepadee-1.0.0-release.apk</code> on your Redmi Note 7 or Mi Pad 5 first. Uninstall the earlier test versions first. Count a full round to feel the long vibration, try the bell and gong in Settings, reset the free counter, and set a reminder one minute ahead. If anything looks wrong, tell me before uploading.</p></section>
 
 <section><h2><span class="n">2</span>Create the app</h2>
 <p>Play Console → <b>Create app</b>:</p>

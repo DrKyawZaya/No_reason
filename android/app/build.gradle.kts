@@ -14,7 +14,7 @@ android {
         minSdk = 24
         targetSdk = 36
         versionCode = 11
-        versionName = "1.0.2"
+        versionName = "1.0.0"
     }
 
     // Upload key for Google Play. keystore.properties and the .jks stay out of git;

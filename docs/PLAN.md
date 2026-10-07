@@ -94,9 +94,9 @@ Round / day / stage complete → History → Settings.
 - Figma design: https://www.figma.com/design/kboHMgjsGdaUGQxLkyELks
 - Clickable prototype: https://claude.ai/artifact/N2zqp83giaeKZwEhrx665g
 - Canva mockups: https://canva.link/jjicn7pxz4aj7pw · icon draft: https://canva.link/soxphoh3scakwzi
-- Latest build: 1.0.2 (release, versionCode 11; end-of-round vibration and bell/gong sound in settings) (reminders for own ပုတီး; string through bead holes)
+- Latest build: 1.0.0 (release for Play, versionCode 11; includes free-counter reset and end-of-round signal) (reminders for own ပုတီး; string through bead holes)
 
-## Google Play release (1.0.0)
+## Google Play release (1.0.0, versionCode 11)
 - Upload guide: https://claude.ai/artifact/VC71MrJz5Mhj7sAcKBauN6 (source `store/upload-guide.html`, built by `tools/upload_guide.py` from `store/listing.json`).
 - Privacy policy: Google Doc in the Drive folder; publish it to the web and use the `/pub` link. Text also in `store/privacy-policy.md`.
 - Store graphics and screenshots: `store/`. Regenerate with `./gradlew :app:testDebugUnitTest --tests '*StoreAssetsTest*'` then `python3 tools/icon_layers.py` (also rewrites the launcher icons).
