@@ -20,6 +20,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,16 +34,21 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.satepadee.app.data.AppModel
 import com.satepadee.app.data.Mm
+import com.satepadee.app.data.RoundSound
+import com.satepadee.app.data.RoundVibration
 import com.satepadee.app.data.isXiaomiFamily
 import com.satepadee.app.data.openReminderHelpSettings
 
-/** Four settings: bead, counting mode, reminder, and the ကိုးနဝင်း reference page. */
+/** Settings: bead, counting mode, end-of-round signal, reminder, and the ကိုးနဝင်း reference page. */
 @Composable
 fun SettingsScreen(model: AppModel, onAbout: () -> Unit, onBack: () -> Unit) {
     BackHandler(onBack = onBack)
     val context = LocalContext.current
     val s = model.state
     var woodOpen by remember { mutableStateOf(false) }
+    val haptics = remember { Haptics(context) }
+    val chime = remember { Chime() }
+    DisposableEffect(Unit) { onDispose { chime.release() } }
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> model.setReminder(granted) }
 
     fun enableReminder(on: Boolean) {
@@ -71,6 +77,19 @@ fun SettingsScreen(model: AppModel, onAbout: () -> Unit, onBack: () -> Unit) {
             Card {
                 Text("ရေတွက်ပုံ", style = Type.heading)
                 ModeSwitch(s.mode) { model.setMode(it) }
+            }
+
+            Card {
+                Text("တစ်ပတ်ပြည့်လျှင် အချက်ပြ", style = Type.heading)
+                Text("တုန်ခါမှု", style = Type.small.copy(color = Palette.muted))
+                Choice(listOf(RoundVibration.Short to "တို", RoundVibration.Long to "ရှည်", RoundVibration.Off to "မတုန်"), s.roundVibration) {
+                    model.setRoundSignal(vibration = it); haptics.round(it)
+                }
+                Text("အသံ", style = Type.small.copy(color = Palette.muted))
+                Choice(listOf(RoundSound.Off to "မမြည်", RoundSound.Bell to "ခေါင်းလောင်း", RoundSound.Gong to "ကြေးစည်"), s.roundSound) {
+                    model.setRoundSignal(sound = it); chime.play(it)
+                }
+                if (s.roundSound != RoundSound.Off) Text("ဖုန်း၏ Media အသံအတိုင်း မြည်ပါမည်။", style = Type.small.copy(color = Palette.muted))
             }
 
             Card {

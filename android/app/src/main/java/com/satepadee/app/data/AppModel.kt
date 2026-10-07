@@ -46,9 +46,16 @@ data class AppState(
     val vegetarianReminder: Boolean = true,
     /** The three first-open questions have been answered (or skipped). */
     val setupDone: Boolean = false,
+    /** Signal at the end of each round (every 108 beads, or the ပုတီး's own count). */
+    val roundVibration: RoundVibration = RoundVibration.Long,
+    val roundSound: RoundSound = RoundSound.Off,
 )
 
 enum class CountMode { Tap, Swipe }
+
+enum class RoundVibration { Short, Long, Off }
+
+enum class RoundSound { Off, Bell, Gong }
 
 /** What the counter is counting. [key] survives process death in saved UI state. */
 sealed interface Target {
@@ -181,6 +188,8 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
 
     fun setWish(stage: Int, wish: String) = update(state.copy(wishes = state.wishes + (stage to wish.trim())))
     fun setMode(mode: CountMode) = update(state.copy(mode = mode))
+    fun setRoundSignal(vibration: RoundVibration = state.roundVibration, sound: RoundSound = state.roundSound) =
+        update(state.copy(roundVibration = vibration, roundSound = sound))
     fun setWood(id: String) = update(state.copy(woodId = id))
     fun setBirthDay(id: String) {
         val woodId = content.woods.firstOrNull { it.day == id }?.id ?: state.woodId
@@ -259,6 +268,8 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
         reminderMinutes = prefs.getInt(K_REM_MIN, 5 * 60 + 30),
         vegetarianReminder = prefs.getBoolean(K_REM_VEG, true),
         setupDone = prefs.getBoolean(K_SETUP, false),
+        roundVibration = runCatching { RoundVibration.valueOf(prefs.getString(K_RVIB, null)!!) }.getOrDefault(RoundVibration.Long),
+        roundSound = runCatching { RoundSound.valueOf(prefs.getString(K_RSOUND, null)!!) }.getOrDefault(RoundSound.Off),
     )
 
     private fun save(s: AppState) {
@@ -285,6 +296,8 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
             putInt(K_REM_MIN, s.reminderMinutes)
             putBoolean(K_REM_VEG, s.vegetarianReminder)
             putBoolean(K_SETUP, s.setupDone)
+            putString(K_RVIB, s.roundVibration.name)
+            putString(K_RSOUND, s.roundSound.name)
         }.apply()
     }
 
@@ -295,5 +308,6 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
         const val K_FBEADS = "freeBeads"; const val K_FROUNDS = "freeRounds"; const val K_RECITATIONS = "recitations"
         const val K_HISTORY = "history"; const val K_REM_ON = "reminderOn"; const val K_REM_MIN = "reminderMinutes"
         const val K_REM_VEG = "vegetarianReminder"; const val K_SETUP = "setupDone"
+        const val K_RVIB = "roundVibration"; const val K_RSOUND = "roundSound"
     }
 }

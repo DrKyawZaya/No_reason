@@ -1,10 +1,5 @@
 package com.satepadee.app.ui
 
-import android.content.Context
-import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
@@ -70,6 +65,8 @@ fun CounterScreen(
 ) {
     val context = LocalContext.current
     val haptics = remember { Haptics(context) }
+    val chime = remember { Chime() }
+    DisposableEffect(Unit) { onDispose { chime.release() } }
     val view = LocalView.current
     DisposableEffect(Unit) { view.keepScreenOn = true; onDispose { view.keepScreenOn = false } }
 
@@ -89,7 +86,8 @@ fun CounterScreen(
     fun countOne() {
         val dayIndex = day?.index
         val r = model.count(target)
-        if (r == CountResult.Bead) haptics.tick() else haptics.round()
+        if (r == CountResult.Bead) haptics.tick()
+        else { haptics.round(model.state.roundVibration); chime.play(model.state.roundSound) }
         if (r == CountResult.DayDone || r == CountResult.StageDone || r == CountResult.ProgramDone || r == CountResult.GoalDone) {
             onFinished(r, dayIndex)
         }
@@ -193,24 +191,5 @@ fun CounterScreen(
             confirmButton = { TextButton({ model.resetFree(); confirmReset = false }) { Text("ပြန်စမည်", style = Type.body.copy(color = Palette.warn)) } },
             dismissButton = { TextButton({ confirmReset = false }) { Text("မစပါ", style = Type.body.copy(color = Palette.muted)) } },
         )
-    }
-}
-
-/** Short tick per bead, a stronger pattern at the end of a round. */
-class Haptics(context: Context) {
-    private val vibrator: Vibrator? = if (Build.VERSION.SDK_INT >= 31) {
-        context.getSystemService(VibratorManager::class.java)?.defaultVibrator
-    } else {
-        @Suppress("DEPRECATION") context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-    }
-
-    fun tick() = vibrate(longArrayOf(0, 15))
-    fun round() = vibrate(longArrayOf(0, 60, 60, 200))
-
-    private fun vibrate(pattern: LongArray) {
-        val v = vibrator ?: return
-        if (!v.hasVibrator()) return
-        if (Build.VERSION.SDK_INT >= 26) v.vibrate(VibrationEffect.createWaveform(pattern, -1))
-        else @Suppress("DEPRECATION") v.vibrate(pattern, -1)
     }
 }

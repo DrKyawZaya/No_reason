@@ -96,15 +96,20 @@ fun ProgressBar(fraction: Float, modifier: Modifier = Modifier) {
 
 /** Tap or swipe; the user's choice of how a bead is counted. */
 @Composable
-fun ModeSwitch(mode: CountMode, onChange: (CountMode) -> Unit) {
+fun ModeSwitch(mode: CountMode, onChange: (CountMode) -> Unit) =
+    Choice(listOf(CountMode.Tap to "နှိပ်၍ စိပ်မည်", CountMode.Swipe to "ပွတ်ဆွဲ၍ စိပ်မည်"), mode, onChange)
+
+/** Segmented control: one option is always selected. */
+@Composable
+fun <T> Choice(options: List<Pair<T, String>>, selected: T, onChange: (T) -> Unit) {
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Palette.sunk).padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        for ((m, label) in listOf(CountMode.Tap to "နှိပ်၍ စိပ်မည်", CountMode.Swipe to "ပွတ်ဆွဲ၍ စိပ်မည်")) {
-            val on = m == mode
+        for ((value, label) in options) {
+            val on = value == selected
             Box(
                 Modifier.weight(1f).clip(RoundedCornerShape(9.dp)).background(if (on) Palette.surface else Color.Transparent)
-                    .clickable(role = Role.RadioButton) { onChange(m) }.padding(vertical = 8.dp),
+                    .clickable(role = Role.RadioButton) { onChange(value) }.padding(vertical = 8.dp),
                 contentAlignment = Alignment.Center,
-            ) { Text(label, style = Type.body.copy(color = if (on) Palette.fg else Palette.muted, fontWeight = if (on) FontWeight.Bold else FontWeight.Normal)) }
+            ) { Text(label, style = Type.body.copy(color = if (on) Palette.fg else Palette.muted, fontWeight = if (on) FontWeight.Bold else FontWeight.Normal), maxLines = 1) }
         }
     }
 }
