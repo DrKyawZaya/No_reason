@@ -1,0 +1,368 @@
+<title>စိပ်ပုတီး Simplification Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Myanmar:wght@400;600;700&family=Noto+Serif+Myanmar:wght@600;700&display=swap">
+<style>
+/* Layout: one reading column; phone mockups sit in wrapping rows so "now" and "simplified" can be compared side by side. */
+:root {
+  --bg: #f3f0eb; --surface: #fffdfa; --fg: #241a12; --muted: #6f604f; --line: #ddd3c5;
+  --accent: #a85a0a; --accent-soft: #f2dfc2; --good: #2d7a4c; --good-soft: #dcefe2; --warn: #b5452b; --warn-soft: #f6ddd4;
+  --f-display: "Noto Serif Myanmar", "Noto Sans Myanmar", Georgia, serif;
+  --f-body: "Noto Sans", "Noto Sans Myanmar", system-ui, sans-serif;
+  /* Phone mockups always show the app's own dark teak look. */
+  --p-bg: #16110c; --p-surface: #211912; --p-sunk: #2b2118; --p-fg: #f2e5d1; --p-muted: #b29c80; --p-line: #3b2e22;
+  --p-accent: #eba443; --p-ink: #1a120a; --p-jade: #6cc08b;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #120e0a; --surface: #1d1610; --fg: #f1e6d6; --muted: #b4a28b; --line: #34291f;
+  --accent: #eba443; --accent-soft: #3d2a12; --good: #6cc08b; --good-soft: #1c3325; --warn: #ec8f74; --warn-soft: #3f2219; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #120e0a; --surface: #1d1610; --fg: #f1e6d6; --muted: #b4a28b; --line: #34291f;
+  --accent: #eba443; --accent-soft: #3d2a12; --good: #6cc08b; --good-soft: #1c3325; --warn: #ec8f74; --warn-soft: #3f2219; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 16px; line-height: 1.7; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; display: flex; flex-direction: column; gap: 56px; }
+h1 { font-family: var(--f-display); font-size: clamp(28px, 5vw, 40px); line-height: 1.5; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-size: 24px; line-height: 1.6; margin: 0; text-wrap: balance; }
+h3 { font-size: 16px; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+.eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+section { display: flex; flex-direction: column; gap: 18px; }
+a { color: var(--accent); }
+
+.hero { display: flex; flex-direction: column; gap: 14px; }
+.goal { font-size: 19px; line-height: 1.7; max-width: 60ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font-size: 13px; padding: 2px 12px; border-radius: 99px; background: var(--accent-soft); color: var(--fg); }
+
+/* Compare rows */
+.compare { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: start; }
+.compare > div { min-width: 0; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.arrow { align-self: center; font-size: 28px; color: var(--accent); }
+.label { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.label.now { color: var(--warn); } .label.new { color: var(--good); }
+.note { font-size: 14px; color: var(--muted); text-align: center; max-width: 34ch; }
+@media (max-width: 640px) { .compare { grid-template-columns: 1fr; } .arrow { transform: rotate(90deg); } }
+.row { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+.row > figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+figcaption { font-size: 14px; color: var(--muted); text-align: center; max-width: 24ch; }
+
+/* Phone mockup */
+.phone { width: 232px; max-width: 100%; aspect-ratio: 9 / 18.5; background: var(--p-bg); border-radius: 30px; border: 6px solid #0a0705;
+  box-shadow: 0 10px 30px rgb(0 0 0 / .18); padding: 14px 12px; display: flex; flex-direction: column; gap: 8px; overflow: hidden;
+  font-family: "Noto Sans Myanmar", sans-serif; color: var(--p-fg); font-size: 11px; line-height: 1.6; }
+.phone .t { font-size: 17px; font-weight: 700; }
+.phone .m { color: var(--p-muted); }
+.phone .card { background: var(--p-surface); border: 1px solid var(--p-line); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; }
+.phone .card.hi { border-color: var(--p-accent); }
+.phone .guna { font-family: "Noto Serif Myanmar", serif; color: var(--p-accent); font-weight: 700; font-size: 20px; line-height: 1.6; }
+.phone .guna.xl { font-size: 30px; text-align: center; }
+.phone .btn { background: var(--p-accent); color: var(--p-ink); font-weight: 700; border-radius: 10px; text-align: center; padding: 5px; }
+.phone .btn.xl { font-size: 18px; padding: 12px; border-radius: 14px; }
+.phone .ghost { background: var(--p-sunk); border-radius: 8px; padding: 2px 8px; }
+.phone .bar { height: 5px; border-radius: 3px; background: var(--p-sunk); overflow: hidden; } .phone .bar i { display: block; height: 100%; width: 62%; background: var(--p-accent); }
+.phone .dots { display: grid; grid-template-columns: repeat(9, 1fr); gap: 2px; } .phone .dots i { height: 4px; border-radius: 2px; background: var(--p-accent); } .phone .dots i:last-child { background: var(--p-sunk); outline: 1px solid var(--p-accent); }
+.phone .li { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.phone .tabs { margin-top: auto; display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; border-top: 1px solid var(--p-line); padding-top: 6px; color: var(--p-muted); font-size: 10px; }
+.phone .tabs.two { grid-template-columns: 1fr 1fr; }
+.phone .tabs b { color: var(--p-accent); }
+.phone .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--p-sunk); border-radius: 8px; padding: 2px; text-align: center; }
+.phone .seg b { background: var(--p-surface); border-radius: 6px; }
+.phone .spacer { flex: 1; }
+.phone .top { display: flex; justify-content: space-between; align-items: center; }
+.phone .gear { width: 22px; height: 22px; border-radius: 7px; border: 1px solid var(--p-line); display: grid; place-items: center; color: var(--p-muted); font-size: 13px; }
+.phone .busy { outline: 2px dashed var(--warn); outline-offset: 2px; border-radius: 8px; }
+.strand { flex: 1; display: grid; grid-template-columns: 1fr 1fr; align-items: center; border: 1px solid var(--p-line); border-radius: 16px; background: radial-gradient(circle at 40% 50%, var(--p-surface), var(--p-bg) 70%); }
+.beads { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bead { width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 34% 28%, #e58a6f, #a3392a 55%, #4a120c); }
+.bead.dim { filter: brightness(.55) saturate(.6); }
+.bead.now { width: 40px; height: 40px; box-shadow: 0 0 18px #f07a5c; }
+.count { text-align: center; } .count b { display: block; font-family: "Noto Serif Myanmar", serif; font-size: 40px; color: var(--p-accent); line-height: 1.4; }
+.opt { border: 1px solid var(--p-line); border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 8px; }
+.opt.on { border: 2px solid var(--p-accent); }
+.sw { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 34% 28%, #e58a6f, #a3392a 55%, #4a120c); flex: none; }
+.daychips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; text-align: center; }
+.daychips span { border: 1px solid var(--p-line); border-radius: 99px; padding: 1px 0; font-size: 10px; }
+.daychips span.on { background: var(--p-accent); color: var(--p-ink); border-color: var(--p-accent); font-weight: 700; }
+.steps3 { display: flex; gap: 4px; justify-content: center; } .steps3 i { width: 18px; height: 4px; border-radius: 2px; background: var(--p-sunk); } .steps3 i.on { background: var(--p-accent); }
+.center { text-align: center; }
+
+/* Table */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 15px; }
+th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td:first-child { font-weight: 700; white-space: nowrap; }
+td.now { color: var(--muted); }
+
+/* Notification */
+.status { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.tag { align-self: flex-start; font-size: 12px; font-weight: 700; padding: 1px 10px; border-radius: 99px; }
+.tag.good { background: var(--good-soft); color: var(--good); } .tag.warn { background: var(--warn-soft); color: var(--warn); }
+ul.checks { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+ul.checks li { padding-left: 24px; position: relative; } ul.checks li::before { content: "✓"; position: absolute; left: 0; color: var(--good); font-weight: 700; }
+.risk { display: flex; flex-direction: column; gap: 2px; }
+.risk + .risk { border-top: 1px solid var(--line); padding-top: 10px; }
+
+/* Steps */
+ol.steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0; counter-reset: s; }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 44px 1fr; gap: 14px; padding-block: 14px; border-top: 1px solid var(--line); }
+ol.steps li::before { content: counter(s); width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+ol.steps li div { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.tool { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: .04em; text-transform: uppercase; }
+.done { color: var(--good); }
+
+/* Decisions */
+.decide { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.q { background: var(--surface); border: 1px solid var(--line); border-left: 0; border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.rec { font-size: 14px; } .rec b { color: var(--good); }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <span class="eyebrow">Plan · not built yet</span>
+    <h1>စိပ်ပုတီး Simplification Plan</h1>
+    <p class="goal">An older person opens the app, sees today's guna, presses <b>one big button</b>, and counts. Everything else stays out of the way until it's needed.</p>
+    <div class="chips"><span class="chip">One job per screen</span><span class="chip">Settings asked once</span><span class="chip">Fewer words, bigger text</span><span class="chip">Reference text on one page</span></div>
+  </header>
+
+  <section>
+    <h2>Home screen</h2>
+    <div class="compare">
+      <div>
+        <span class="label now">Now</span>
+        <div class="phone" aria-label="Current home screen">
+          <div class="top"><span class="t">ယနေ့</span><span class="m">ဗုဒ္ဓဟူးနေ့</span></div>
+          <div class="card hi">
+            <span class="m">ကိုးနဝင်း · ပထမ အဆင့် · ရက် ၉/၈၁</span>
+            <span class="guna">ဗုဒ္ဓေါ</span>
+            <span class="m busy">သစ္စာလေးပါးကို ကိုယ်တိုင်သိတော်မူ၊ သူတစ်ပါးကိုလည်း...</span>
+            <div class="li"><span>၅ / ၈ ပတ်</span><span class="m">၈၆၄ လုံး</span></div>
+            <div class="bar"><i></i></div>
+            <div class="btn">ဆက်စိပ်မည်</div>
+            <div class="dots busy"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <span class="ghost busy">ဤအဆင့် ဆုတောင်း — မိသားစု...</span>
+          </div>
+          <div class="card">
+            <b>ကိုယ်ပိုင် ပုတီး</b>
+            <div class="li"><span>မေတ္တာပို့</span><span class="ghost">စိပ်မည်</span></div>
+            <div class="li"><span>စိပ်ပုတီး (အလွတ်)</span><span class="ghost">စိပ်မည်</span></div>
+            <div class="li busy"><span>ပုတီး — ပိတောက်သား</span><span style="color:var(--p-accent)">ပြောင်းမည်</span></div>
+          </div>
+          <div class="tabs"><b>ယနေ့</b><span>ဇယား</span><span>ကိုယ်ပိုင်</span><span>အကြောင်း</span></div>
+        </div>
+        <p class="note">Six things compete for attention. Dashed items move elsewhere.</p>
+      </div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div>
+        <span class="label new">Simplified</span>
+        <div class="phone" aria-label="Simplified home screen">
+          <div class="top"><span class="t">ယနေ့</span><span class="gear" aria-label="settings">⚙</span></div>
+          <div class="spacer"></div>
+          <span class="m center">ကိုးနဝင်း · ရက် ၉ / ၈၁</span>
+          <span class="guna xl">ဗုဒ္ဓေါ</span>
+          <span class="center" style="font-size:15px">၅ / ၈ ပတ်</span>
+          <div class="bar"><i></i></div>
+          <div class="btn xl">စိပ်မည်</div>
+          <div class="spacer"></div>
+          <div class="card">
+            <div class="li"><span>မေတ္တာပို့ · ၀/၃</span><span class="m">›</span></div>
+            <div class="li"><span>စိပ်ပုတီး (အလွတ်)</span><span class="m">›</span></div>
+            <div class="li" style="color:var(--p-accent)"><span>+ ပုတီးအသစ်</span></div>
+          </div>
+          <div class="tabs two"><b>ယနေ့</b><span>ဇယား</span></div>
+        </div>
+        <p class="note">Today's guna and one big button. Other ပုတီး are simple rows below. Settings sit behind ⚙.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Counter screen</h2>
+    <div class="compare">
+      <div>
+        <span class="label now">Now</span>
+        <div class="phone" aria-label="Current counter screen">
+          <div class="top"><span class="ghost">‹</span><span class="m">ကိုးနဝင်း · ပထမ အဆင့် · ရက် ၉</span><span class="sw"></span></div>
+          <span class="guna center">ဗုဒ္ဓေါ</span>
+          <span class="m center busy">သစ္စာလေးပါးကို ကိုယ်တိုင်သိတော်မူ၊ သူတစ်ပါးကိုလည်း သိအောင်...</span>
+          <div class="strand"><div class="beads"><i class="bead dim"></i><i class="bead now"></i><i class="bead"></i></div><div class="count"><b>၄၀</b><span class="m">/ ၁၀၈</span></div></div>
+          <div class="seg busy"><b>နှိပ်၍</b><span class="m">ပွတ်ဆွဲ၍</span></div>
+          <span class="m center">● ● ● ● ● ○ ○ ○ &nbsp;၅ / ၈ ပတ်</span>
+        </div>
+        <p class="note">The meaning and the tap/swipe switch take space every time you count.</p>
+      </div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div>
+        <span class="label new">Simplified</span>
+        <div class="phone" aria-label="Simplified counter screen">
+          <div class="top"><span class="ghost">‹</span><span class="m">၅ / ၈ ပတ်</span></div>
+          <span class="guna center">ဗုဒ္ဓေါ</span>
+          <div class="strand" style="grid-template-columns: 1.1fr 1fr"><div class="beads"><i class="bead dim"></i><i class="bead dim"></i><i class="bead now"></i><i class="bead"></i><i class="bead"></i></div><div class="count"><b style="font-size:52px">၄၀</b><span class="m">/ ၁၀၈</span></div></div>
+        </div>
+        <p class="note">Beads fill the screen with a big count. Tap the guna to see its meaning. Tap or swipe is chosen once in settings.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>New: three questions on first open</h2>
+    <p class="muted">Asked once, one question per screen, so nobody has to hunt through settings. Everything can be changed later behind ⚙.</p>
+    <div class="row">
+      <figure>
+        <div class="phone" aria-label="First open, question 1">
+          <div class="steps3"><i class="on"></i><i></i><i></i></div>
+          <div class="spacer"></div>
+          <span class="t center">မွေးနေ့ ဘာနေ့လဲ</span>
+          <span class="m center">နေ့နံနှင့် သင့်တော်သော ပုတီးကို ရွေးပေးပါမည်</span>
+          <div class="daychips"><span>တနင်္ဂနွေ</span><span>တနင်္လာ</span><span>အင်္ဂါ</span><span>ဗုဒ္ဓဟူး</span><span>ရာဟု</span><span class="on">ကြာသပတေး</span><span>သောကြာ</span><span>စနေ</span></div>
+          <div class="opt on"><i class="sw"></i><span><b>ပိတောက်သား</b><br><span class="m">သင့်နေ့နံ</span></span></div>
+          <div class="spacer"></div>
+          <div class="btn xl">ဆက်ရန်</div>
+        </div>
+        <figcaption>1 · Birth day. The matching wood is picked for you.</figcaption>
+      </figure>
+      <figure>
+        <div class="phone" aria-label="First open, question 2">
+          <div class="steps3"><i class="on"></i><i class="on"></i><i></i></div>
+          <div class="spacer"></div>
+          <span class="t center">ဘယ်လို စိပ်မလဲ</span>
+          <div class="opt on"><span style="font-size:18px">☝</span><span><b>နှိပ်၍ စိပ်မည်</b><br><span class="m">နှိပ်တိုင်း တစ်လုံး</span></span></div>
+          <div class="opt"><span style="font-size:18px">↕</span><span><b>ပွတ်ဆွဲ၍ စိပ်မည်</b><br><span class="m">ပွတ်ဆွဲတိုင်း တစ်လုံး</span></span></div>
+          <div class="spacer"></div>
+          <div class="btn xl">ဆက်ရန်</div>
+        </div>
+        <figcaption>2 · Tap or swipe.</figcaption>
+      </figure>
+      <figure>
+        <div class="phone" aria-label="First open, question 3">
+          <div class="steps3"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+          <div class="spacer"></div>
+          <span class="t center">နေ့စဉ် သတိပေးမလား</span>
+          <span class="guna xl" style="font-size:34px">နံနက် ၅:၃၀</span>
+          <span class="m center">အချိန် ပြောင်းရန် နှိပ်ပါ</span>
+          <div class="spacer"></div>
+          <div class="btn xl">သတိပေးမည်</div>
+          <span class="m center">မလိုပါ</span>
+        </div>
+        <figcaption>3 · Reminder time, or skip.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Finishing and settings</h2>
+    <div class="row">
+      <figure>
+        <div class="phone" aria-label="Simplified day finished screen">
+          <div class="spacer"></div>
+          <span class="guna xl">သာဓု</span>
+          <span class="center" style="font-size:14px">ယနေ့ ၈ ပတ် ပြည့်ပါပြီ</span>
+          <div class="card"><span class="m">မနက်ဖြန် · ကြာသပတေး</span><b>ဝိဇ္ဇာစရဏသမ္ပန္နော · ၃ ပတ်</b></div>
+          <div class="spacer"></div>
+          <div class="btn xl">ပြီးပြီ</div>
+        </div>
+        <figcaption>Day finished: one calm screen with tomorrow's guna. Stage endings still show your wish and the stage's benefits.</figcaption>
+      </figure>
+      <figure>
+        <div class="phone" aria-label="Simplified settings">
+          <div class="top"><span class="ghost">‹</span><span class="t">ဆက်တင်</span><span></span></div>
+          <div class="card"><div class="li"><span>ပုတီး</span><span class="m">ပိတောက်သား ›</span></div></div>
+          <div class="card"><div class="li"><span>ရေတွက်ပုံ</span><span class="m">နှိပ်၍ ›</span></div></div>
+          <div class="card"><div class="li"><span>သတိပေးချိန်</span><span class="m">နံနက် ၅:၃၀ ›</span></div></div>
+          <div class="card"><div class="li"><span>ကိုးနဝင်း အကြောင်း</span><span class="m">›</span></div></div>
+          <div class="spacer"></div>
+        </div>
+        <figcaption>Settings: four rows. Rules, the 9 gunas and stage benefits move to "ကိုးနဝင်း အကြောင်း".</figcaption>
+      </figure>
+      <figure>
+        <div class="phone" aria-label="Simplified chart">
+          <div class="top"><span class="t">ဇယား</span><span class="m">၈ / ၈၁</span></div>
+          <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:2px">
+            <i style="aspect-ratio:1;border-radius:3px;background:var(--p-accent)"></i><i style="aspect-ratio:1;border-radius:3px;background:var(--p-accent)"></i><i style="aspect-ratio:1;border-radius:3px;background:var(--p-accent)"></i><i style="aspect-ratio:1;border-radius:3px;background:var(--p-accent)"></i><i style="aspect-ratio:1;border-radius:3px;background:var(--p-accent)"></i><i style="aspect-ratio:1;border-radius:3px;background:var(--p-accent)"></i><i style="aspect-ratio:1;border-radius:3px;background:var(--p-accent)"></i><i style="aspect-ratio:1;border-radius:3px;background:var(--p-accent)"></i><i style="aspect-ratio:1;border-radius:3px;outline:1.5px solid var(--p-fg)"></i>
+          </div>
+          <div id="grid-rest" style="display:grid;grid-template-columns:repeat(9,1fr);gap:2px"></div>
+          <div class="card center"><b style="font-size:15px">ဆက်တိုက် ၈ ရက်</b></div>
+        </div>
+        <figcaption>Chart: the 81-day grid and your streak. Tap a row to see that stage's wish.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Every change at a glance</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Area</th><th>Now</th><th>Simplified</th></tr></thead>
+        <tbody>
+          <tr><td>Tabs</td><td class="now">4 tabs: ယနေ့, ဇယား, ကိုယ်ပိုင်, အကြောင်း</td><td>2 tabs: ယနေ့, ဇယား. Settings behind ⚙</td></tr>
+          <tr><td>First open</td><td class="now">Default settings; user must find them</td><td>3 questions, one per screen: birth day, tap or swipe, reminder</td></tr>
+          <tr><td>Home</td><td class="now">Today card, 9 stage dots, wish box, own list, free counter, bead row</td><td>Guna, "၅ / ၈ ပတ်", one big စိပ်မည် button; other ပုတီး as rows</td></tr>
+          <tr><td>Counter</td><td class="now">Meaning text, tap/swipe switch, round dots</td><td>Beads fill the screen with a big count; meaning on tap</td></tr>
+          <tr><td>Day finished</td><td class="now">Dialog with details</td><td>One calm "သာဓု" screen with tomorrow's guna</td></tr>
+          <tr><td>Own ပုတီး</td><td class="now">Separate tab with a long form</td><td>"+ ပုတီးအသစ်" opens a short form (name and text; numbers have defaults)</td></tr>
+          <tr><td>Chart</td><td class="now">Grid, stage list, 14-day history</td><td>Grid and streak; stage wish on tap</td></tr>
+          <tr><td>Settings</td><td class="now">One long page mixed with reference text</td><td>4 rows; reference text on its own page</td></tr>
+          <tr><td>Stays the same</td><td class="now" colspan="2" style="color:var(--fg)">Rolling beads, one bead per swipe, the 9 woods, ကိုးနဝင်း rules and 81-day schedule, wishes, missed-day choices, your saved progress</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Reminder notification</h2>
+    <div class="status">
+      <div class="box">
+        <span class="tag good">Code works · 5 tests pass</span>
+        <ul class="checks">
+          <li>Shows today's guna and rounds, e.g. "ယနေ့ လောကဝိဒူ · ၅ ပတ် · သက်သက်လွတ်နေ့"</li>
+          <li>Mentions tomorrow's vegetarian day</li>
+          <li>Sets the next day's reminder</li>
+          <li>Stops when turned off</li>
+          <li>Comes back after the phone restarts</li>
+        </ul>
+      </div>
+      <div class="box">
+        <span class="tag warn">Real phones can differ</span>
+        <div class="risk"><h3>It may arrive some minutes late</h3><p class="small muted">Android delays reminders while the phone is idle. Fix: use exact timing when the phone allows it.</p></div>
+        <div class="risk"><h3>Some brands block it</h3><p class="small muted">Xiaomi, Oppo, Vivo, Realme, Huawei and some Samsung phones stop reminders for apps under battery saving. Fix: a one-time hint that opens the phone's battery setting for this app.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Steps</h2>
+    <ol class="steps">
+      <li><div><span class="tool done">FigJam · done</span><h3>Flow diagram of now vs simplified</h3><a href="https://www.figma.com/board/sf32I7p4CT3Eo1Sp5Or1fY">Open the FigJam board</a></div></li>
+      <li><div><span class="tool">Figma</span><h3>Draw the simplified screens</h3><p class="small muted">First-open questions, Home, Counter, Done, Chart and Settings on a new page of the existing design file.</p></div></li>
+      <li><div><span class="tool">Prototype</span><h3>Update the clickable prototype</h3><p class="small muted">So you can try the simpler flow by hand on your phone before any Android work.</p></div></li>
+      <li><div><span class="tool">Android</span><h3>Build it and fix reminders</h3><p class="small muted">New screens, same counting and saved progress. Screenshot and gesture tests, then a new APK for you.</p></div></li>
+      <li><div><span class="tool">Google Drive</span><h3>Keep notes</h3><p class="small muted">This plan and each round of test notes in your <a href="https://drive.google.com/drive/folders/1MQhc3o-WE4qxChG1VasjZx_XVQEUXwi3">စိပ်ပုတီး folder</a>.</p></div></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Your decisions</h2>
+    <div class="decide">
+      <div class="q"><h3>Tabs</h3><p class="small">2 tabs with ⚙, or keep 4 tabs?</p><p class="rec"><b>Suggested:</b> 2 tabs with ⚙</p></div>
+      <div class="q"><h3>First open</h3><p class="small">Ask the 3 questions on first open?</p><p class="rec"><b>Suggested:</b> yes</p></div>
+      <div class="q"><h3>Wish (ဆုတောင်း)</h3><p class="small">Keep the wish question at the start of each stage?</p><p class="rec"><b>Suggested:</b> yes, it is part of ကိုးနဝင်း</p></div>
+      <div class="q"><h3>Your phone</h3><p class="small">Did the reminder arrive? On time or late? Which phone brand?</p><p class="rec muted">Needed to choose the right reminder fix.</p></div>
+    </div>
+  </section>
+</div>
+
+<script>
+  // Remaining 8 stage rows of the mini chart: middle column is the vegetarian day.
+  const g = document.getElementById("grid-rest");
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 9; c++) {
+    const i = document.createElement("i");
+    i.style.cssText = "aspect-ratio:1;border-radius:3px;background:" + (c === 4 ? "#1f3a29" : "#211912") + ";border:1px solid #3b2e22";
+    g.appendChild(i);
+  }
+</script>
