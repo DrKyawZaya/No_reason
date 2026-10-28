@@ -52,7 +52,7 @@ fun AppShell(model: AppModel, openTarget: String? = null, onOpened: () -> Unit =
 @Composable
 private fun Shell(model: AppModel, openTarget: String?, onOpened: () -> Unit) {
     var tab by rememberSaveable { mutableStateOf(Tab.Home) }
-    var page by rememberSaveable { mutableStateOf<String?>(null) }      // "settings", "about", "add", "edit:<id>", "card:<stage>:<programDone>"
+    var page by rememberSaveable { mutableStateOf<String?>(null) }      // "settings", "about", "add", "edit:<id>", "card:<runId>:<stage>"
     var counting by rememberSaveable { mutableStateOf<String?>(null) }  // Target.key
     var finished by rememberSaveable { mutableStateOf<String?>(null) }  // "Result:dayIndex"
 
@@ -73,7 +73,8 @@ private fun Shell(model: AppModel, openTarget: String?, onOpened: () -> Unit) {
         FinishedScreen(
             model, result, dayIndex,
             onWishCard = {
-                page = "card:${dayIndex?.let { Kozawin.day(it).stage } ?: ""}:${result == CountResult.ProgramDone}"
+                val run = model.state.runId
+                if (run != null && dayIndex != null) page = "card:$run:${Kozawin.day(dayIndex).stage}"
                 finished = null
             },
         ) { finished = null }
@@ -90,8 +91,8 @@ private fun Shell(model: AppModel, openTarget: String?, onOpened: () -> Unit) {
         "add" -> { RecitationForm(model) { page = null }; return }
     }
     page?.takeIf { it.startsWith("card:") }?.let { p ->
-        val (stage, all) = p.removePrefix("card:").split(':')
-        WishCardScreen(model, stage.toIntOrNull(), all.toBoolean()) { page = null }
+        val (run, stage) = p.removePrefix("card:").split(':')
+        WishCardScreen(model, run.toLong(), stage.toInt()) { page = null }
         return
     }
     page?.takeIf { it.startsWith("edit:") }?.let { p -> RecitationForm(model, editId = p.removePrefix("edit:")) { page = null }; return }
@@ -100,8 +101,11 @@ private fun Shell(model: AppModel, openTarget: String?, onOpened: () -> Unit) {
     Column(Modifier.fillMaxSize().pageBackground().statusBarsPadding()) {
         Box(Modifier.weight(1f)) {
             when (tab) {
-                Tab.Home -> HomeScreen(model, onSettings = { page = "settings" }, onAdd = { page = "add" }, onEdit = { page = "edit:$it" }) { counting = it.key }
-                Tab.Chart -> ChartScreen(model)
+                Tab.Home -> HomeScreen(
+                    model, onSettings = { page = "settings" }, onAdd = { page = "add" }, onEdit = { page = "edit:$it" },
+                    onWishCard = { stage -> model.state.runId?.let { page = "card:$it:$stage" } },
+                ) { counting = it.key }
+                Tab.Chart -> ChartScreen(model) { run, stage -> page = "card:$run:$stage" }
             }
         }
         HorizontalDivider(color = Palette.line)

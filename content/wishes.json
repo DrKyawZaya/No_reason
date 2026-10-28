@@ -1,12 +1,19 @@
 {
-  "note": "Ready-made wishes for the card after a ကိုးနဝင်း stage. Draft wording: please check every line.",
-  "templates": [
+  "note": "Ready-made wishes for the wish card earned after each ကိုးနဝင်း stage. Draft wording: please check every line.",
+  "self": [
     "ကျန်းမာချမ်းသာပါစေ",
+    "စိတ်ငြိမ်းချမ်းပါစေ",
     "သဗ္ဗေ သတ္တာ အဝေရာ ဟောန္တု",
+    "လုပ်ငန်း အောင်မြင်ပါစေ",
+    "စာမေးပွဲ အောင်မြင်ပါစေ"
+  ],
+  "someone": [
+    "ကျန်းမာချမ်းသာပါစေ",
     "ဤကုသိုလ်ကို အမျှဝေပါသည်",
     "အန္တရာယ်ကင်း ငြိမ်းချမ်းပါစေ",
     "လုပ်ငန်း အောင်မြင်ပါစေ",
     "စာမေးပွဲ အောင်မြင်ပါစေ"
   ],
+  "names": ["အမေ", "အဖေ", "မိဘ", "ချစ်သူ", "သားသမီး", "မိသားစု"],
   "closing": "သာဓု သာဓု သာဓု"
 }

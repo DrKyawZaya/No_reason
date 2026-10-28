@@ -35,7 +35,7 @@ import com.satepadee.app.data.Mm
 
 /** The 81-day chart laid out like the printed card, plus stage wishes and the daily history. */
 @Composable
-fun ChartScreen(model: AppModel) {
+fun ChartScreen(model: AppModel, onOpenCard: (runId: Long, stage: Int) -> Unit = { _, _ -> }) {
     val content = model.content
     val done = model.state.done
     val today = model.dayIndex
@@ -96,6 +96,8 @@ fun ChartScreen(model: AppModel) {
                 Text("ယနေ့ ${Mm.n(model.state.history[model.today] ?: 0)} လုံး", style = Type.small.copy(color = Palette.muted))
             }
         }
+
+        WishCollection(model, onOpenCard)
     }
 }
 
@@ -107,7 +109,7 @@ private fun Legend(bg: Color, border: Color, label: String) {
     }
 }
 
-private fun dateText(epochDay: Long): String {
+fun dateText(epochDay: Long): String {
     val c = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply { timeInMillis = epochDay * 86_400_000L }
     return "${Mm.n(c.get(java.util.Calendar.DAY_OF_MONTH))}.${Mm.n(c.get(java.util.Calendar.MONTH) + 1)}.${Mm.n(c.get(java.util.Calendar.YEAR))} (${Mm.WEEKDAYS[Days.weekday(epochDay)]})"
 }

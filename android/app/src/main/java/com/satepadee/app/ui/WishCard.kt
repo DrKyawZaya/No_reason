@@ -21,16 +21,36 @@ import android.text.TextPaint
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.FileProvider
+import com.satepadee.app.data.Kozawin
+import com.satepadee.app.data.Mm
+import com.satepadee.app.data.SealedWish
 import java.io.File
 
-/** What goes on a wish card. [stageLine] is null when the card is not tied to a stage. */
+/** What goes on a wish card. Null lines are left out. */
 data class CardSpec(
     val wish: String,
-    val name: String,
+    /** "အမေ အတွက်"; null on a card for oneself. */
+    val nameLine: String?,
     val stageLine: String?,
     val backgroundId: String?,
     val footer: Boolean,
     val closing: String,
+    /** "ဆုတောင်းပြီး · date" once the wish is made. */
+    val madeLine: String? = null,
+    /** The card for finishing all 81 days gets a gold border. */
+    val special: Boolean = false,
+)
+
+/** Top line of a card: which stage was finished, or the whole program for the last stage. */
+fun stageLine(stage: Int): String =
+    if (stage == Kozawin.STAGES - 1) "ကိုးနဝင်း ပြည့်စုံ · ရက် ၈၁" else "ကိုးနဝင်း · ${Mm.STAGES[stage]} အဆင့် ပြီးပါပြီ"
+
+fun nameLine(forSelf: Boolean, name: String): String? = if (forSelf) null else name.trim().takeIf { it.isNotEmpty() }?.let { "$it အတွက်" }
+
+/** The card exactly as it was made. */
+fun SealedWish.spec(closing: String, footer: Boolean) = CardSpec(
+    wish = text, nameLine = nameLine(forSelf, name), stageLine = stageLine(stage), backgroundId = backgroundId,
+    footer = footer, closing = closing, madeLine = "ဆုတောင်းပြီး · ${dateText(madeDay)}", special = stage == Kozawin.STAGES - 1,
 )
 
 /**
@@ -75,7 +95,7 @@ object WishCard {
 
         val pad = 72 * s
         val textWidth = (w - 2 * pad).toInt()
-        val footerTop = if (spec.footer) h - 90 * s else h - 40 * s
+        val footerTop = (if (spec.footer) h - 90 * s else h - 40 * s) - (if (spec.special) 24 * s else 0f)
 
         // The wish gets smaller when it is long, so everything still fits.
         var wishSize = 68f
@@ -85,8 +105,9 @@ object WishCard {
             blocks = listOfNotNull(
                 spec.stageLine?.let { layout(it, 34 * s, Palette.accent.toArgb(), false, textWidth, s) },
                 layout(spec.wish.ifBlank { " " }, wishSize * s, CREAM, true, textWidth, s),
-                spec.name.takeIf { it.isNotBlank() }?.let { layout("$it အတွက်", 38 * s, Palette.fg.toArgb(), false, textWidth, s) },
+                spec.nameLine?.let { layout(it, 38 * s, Palette.fg.toArgb(), false, textWidth, s) },
                 spec.closing.takeIf { it.isNotBlank() }?.let { layout(it, 34 * s, Palette.accent.toArgb(), false, textWidth, s) },
+                spec.madeLine?.let { layout(it, 26 * s, Palette.muted.toArgb(), false, textWidth, s) },
             )
             val total = blocks.sumOf { it.height } + gap * (blocks.size - 1)
             if (total <= footerTop - h * 0.48f || wishSize <= 40f) break
@@ -100,9 +121,19 @@ object WishCard {
             y += b.height + gap
         }
 
+        if (spec.special) {
+            // Gold double frame for the 81-day card.
+            val gold = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; color = Palette.accent.toArgb() }
+            gold.strokeWidth = 6 * s
+            c.drawRoundRect(26 * s, 26 * s, w - 26 * s, h - 26 * s, 28 * s, 28 * s, gold)
+            gold.strokeWidth = 2 * s
+            gold.alpha = 160
+            c.drawRoundRect(42 * s, 42 * s, w - 42 * s, h - 42 * s, 20 * s, 20 * s, gold)
+        }
+
         if (spec.footer) {
             val f = layout("စိပ်ပုတီး · Google Play", 28 * s, Palette.muted.toArgb(), false, textWidth, s)
-            c.save(); c.translate(pad, h - 40 * s - f.height); f.draw(c); c.restore()
+            c.save(); c.translate(pad, h - (if (spec.special) 60 else 40) * s - f.height); f.draw(c); c.restore()
         }
         return bmp
     }

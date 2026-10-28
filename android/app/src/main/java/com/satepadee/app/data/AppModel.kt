@@ -25,6 +25,20 @@ data class Recitation(
     val reminderMinutes: Int = 5 * 60 + 30,
 )
 
+/** A wish card made once after finishing a stage. It is never changed after it is made. */
+data class SealedWish(
+    /** Which round of ကိုးနဝင်း earned it (see [AppState.runId]). */
+    val runId: Long,
+    val stage: Int,
+    val forSelf: Boolean,
+    /** Who it is for; empty when [forSelf]. */
+    val name: String,
+    val text: String,
+    val backgroundId: String?,
+    /** Epoch day it was made. */
+    val madeDay: Long,
+)
+
 data class AppState(
     /** Epoch day of ကိုးနဝင်း day 1 (always a Monday), or null before the user starts. */
     val start: Long? = null,
@@ -51,6 +65,9 @@ data class AppState(
     val roundSound: RoundSound = RoundSound.Off,
     /** Background picture id (see ui/Backgrounds.kt); null is the original plain teak look. */
     val themeId: String? = null,
+    /** Identifies the current round of ကိုးနဝင်း; stays the same when a stage is restarted. */
+    val runId: Long? = null,
+    val sealedWishes: List<SealedWish> = emptyList(),
 )
 
 enum class CountMode { Tap, Swipe }
@@ -170,7 +187,37 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
     }
 
     fun start() {
-        update(state.copy(start = Days.nextMondayOrToday(today), done = emptySet(), wishes = emptyMap(), progressDay = -1, progress = Progress()))
+        update(
+            state.copy(
+                start = Days.nextMondayOrToday(today), done = emptySet(), wishes = emptyMap(), progressDay = -1, progress = Progress(),
+                runId = System.currentTimeMillis(),
+            ),
+        )
+    }
+
+    /** Stages of the current round whose nine days are all done; each earns one wish card. */
+    fun earnedStages(): List<Int> {
+        if (state.start == null) return emptyList()
+        return (0 until Kozawin.STAGES).filter { s -> (0 until Kozawin.DAYS_PER_STAGE).all { s * Kozawin.DAYS_PER_STAGE + it in state.done } }
+    }
+
+    fun sealedWish(runId: Long, stage: Int): SealedWish? = state.sealedWishes.firstOrNull { it.runId == runId && it.stage == stage }
+
+    /** Earned cards of the current round that are still waiting for their wish. */
+    fun pendingCards(): List<Int> {
+        val run = state.runId ?: return emptyList()
+        return earnedStages().filter { sealedWish(run, it) == null }
+    }
+
+    /** Makes the wish for an earned stage, once. Returns the existing card if it was already made. */
+    fun sealWish(stage: Int, forSelf: Boolean, name: String, text: String, backgroundId: String?): SealedWish? {
+        val run = state.runId ?: return null
+        sealedWish(run, stage)?.let { return it }
+        if (stage !in earnedStages() || text.isBlank() || (!forSelf && name.isBlank())) return null
+        val wish = SealedWish(run, stage, forSelf, if (forSelf) "" else name.trim(), text.trim(), backgroundId, today)
+        update(state.copy(sealedWishes = state.sealedWishes + wish))
+        saveNow()
+        return wish
     }
 
     /** "I recited without the app" — count every missed day as done. */
@@ -277,6 +324,18 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
         roundVibration = runCatching { RoundVibration.valueOf(prefs.getString(K_RVIB, null)!!) }.getOrDefault(RoundVibration.Long),
         roundSound = runCatching { RoundSound.valueOf(prefs.getString(K_RSOUND, null)!!) }.getOrDefault(RoundSound.Off),
         themeId = prefs.getString(K_THEME, null),
+        // Installs from 1.0.0 have no round id yet; their start day identifies the round.
+        runId = if (prefs.contains(K_RUN)) prefs.getLong(K_RUN, 0) else if (prefs.contains(K_START)) prefs.getLong(K_START, 0) else null,
+        sealedWishes = prefs.getString(K_SEALED, null)?.let { s ->
+            val a = JSONArray(s)
+            (0 until a.length()).map { i ->
+                val o = a.getJSONObject(i)
+                SealedWish(
+                    o.getLong("run"), o.getInt("stage"), o.getBoolean("forSelf"), o.optString("name"), o.getString("text"),
+                    if (o.isNull("bg")) null else o.getString("bg"), o.getLong("made"),
+                )
+            }
+        }.orEmpty(),
     )
 
     private fun save(s: AppState, sync: Boolean = false) {
@@ -306,6 +365,11 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
             putString(K_RVIB, s.roundVibration.name)
             putString(K_RSOUND, s.roundSound.name)
             if (s.themeId == null) remove(K_THEME) else putString(K_THEME, s.themeId)
+            if (s.runId == null) remove(K_RUN) else putLong(K_RUN, s.runId)
+            putString(K_SEALED, JSONArray(s.sealedWishes.map {
+                JSONObject().put("run", it.runId).put("stage", it.stage).put("forSelf", it.forSelf).put("name", it.name)
+                    .put("text", it.text).put("bg", it.backgroundId ?: JSONObject.NULL).put("made", it.madeDay)
+            }).toString())
         }.let { if (sync) it.commit() else it.apply() }
     }
 
@@ -317,5 +381,6 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
         const val K_HISTORY = "history"; const val K_REM_ON = "reminderOn"; const val K_REM_MIN = "reminderMinutes"
         const val K_REM_VEG = "vegetarianReminder"; const val K_SETUP = "setupDone"
         const val K_RVIB = "roundVibration"; const val K_RSOUND = "roundSound"; const val K_THEME = "theme"
+        const val K_RUN = "runId"; const val K_SEALED = "sealedWishes"
     }
 }

@@ -36,7 +36,10 @@ import com.satepadee.app.data.Target
 
 /** Today's guna and one big button; other ပုတီး as simple rows underneath. */
 @Composable
-fun HomeScreen(model: AppModel, onSettings: () -> Unit = {}, onAdd: () -> Unit = {}, onEdit: (String) -> Unit = {}, onCount: (Target) -> Unit) {
+fun HomeScreen(
+    model: AppModel, onSettings: () -> Unit = {}, onAdd: () -> Unit = {}, onEdit: (String) -> Unit = {},
+    onWishCard: (stage: Int) -> Unit = {}, onCount: (Target) -> Unit,
+) {
     val content = model.content
     val index = model.dayIndex
     val today = model.todayDay()
@@ -65,6 +68,19 @@ fun HomeScreen(model: AppModel, onSettings: () -> Unit = {}, onAdd: () -> Unit =
             ) {
                 Text("ရက်ကျော် ${Mm.n(missed.size)} ရက် ရှိပါသည်", style = Type.body.copy(color = Palette.warn), modifier = Modifier.weight(1f))
                 Text("ကြည့်မည် ›", style = Type.small.copy(color = Palette.warn))
+            }
+        }
+
+        // An earned wish card that has not been made yet waits here until it is used.
+        val pending = model.pendingCards()
+        if (pending.isNotEmpty()) {
+            Row(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Palette.accentSoft)
+                    .clickable(role = Role.Button) { onWishCard(pending.first()) }.padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("ဆုတောင်းကတ် ${Mm.n(pending.size)} ခု ရှိပါသည်", style = Type.body.copy(color = Palette.accent), modifier = Modifier.weight(1f))
+                Text("ဆုတောင်းမည် ›", style = Type.small.copy(color = Palette.accent, fontWeight = FontWeight.Bold))
             }
         }
 

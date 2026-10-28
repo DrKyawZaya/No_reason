@@ -5,19 +5,24 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ApplicationProvider
+import com.github.takahirom.roborazzi.captureRoboImage
 import com.satepadee.app.data.AppModel
 import com.satepadee.app.data.Content
 import com.satepadee.app.data.CountResult
 import com.satepadee.app.data.Days
+import com.satepadee.app.data.SealedWish
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -28,18 +33,19 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.io.File
 
-/** The wish card picture, sharing it, and the way in from the "သာဓု" screen. */
+/** Wish cards: earned once per finished stage, made once, then only shared. */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35], qualifiers = "w390dp-h844dp-xxhdpi")
 class WishCardTest {
     @get:Rule val rule = createComposeRule()
     private val context: Application = ApplicationProvider.getApplicationContext()
+    private val prefs get() = context.getSharedPreferences("card", Context.MODE_PRIVATE)
 
+    /** Day 19 of round 42: stages 1 and 2 (indices 0 and 1) are complete. */
     private fun model(): AppModel {
-        val prefs = context.getSharedPreferences("card", Context.MODE_PRIVATE)
-        prefs.edit().clear().putLong("start", Days.today() - 8).putString("done", "0,1,2,3,4,5,6,7,8")
-            .putString("wishes", """{"0":"မိသားစု ကျန်းမာ ချမ်းသာပါစေ"}""").putBoolean("setupDone", true).commit()
+        prefs.edit().clear().putLong("start", Days.today() - 18).putString("done", (0..17).joinToString(","))
+            .putLong("runId", 42).putString("wishes", """{"0":"မိသားစု ကျန်းမာ ချမ်းသာပါစေ"}""").putBoolean("setupDone", true).commit()
         return AppModel(prefs, Content.load(context))
     }
 
@@ -48,39 +54,82 @@ class WishCardTest {
         File("build/screenshots/$name.png").outputStream().use { b.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    @Test fun cardIsDrawnAt1080x1350ForEveryBackground() {
+    @Test fun finishedStagesEarnOneCardEach() {
+        val m = model()
+        assertEquals(listOf(0, 1), m.earnedStages())
+        assertEquals(listOf(0, 1), m.pendingCards())
+    }
+
+    @Test fun aWishIsMadeOnceAndNeverChanges() {
+        val m = model()
+        val first = m.sealWish(0, forSelf = false, name = "အမေ", text = "ကျန်းမာချမ်းသာပါစေ", backgroundId = "bagan")
+        assertNotNull(first)
+        val again = m.sealWish(0, forSelf = true, name = "", text = "something else", backgroundId = null)
+        assertEquals(first, again)
+        assertEquals(listOf(1), m.pendingCards())
+        // Saved straight away and read back the same.
+        val reloaded = AppModel(prefs, Content.load(context)).sealedWish(42, 0)
+        assertEquals(first, reloaded)
+    }
+
+    @Test fun unearnedStagesAndMissingNamesCannotBeSealed() {
+        val m = model()
+        assertNull(m.sealWish(2, forSelf = true, name = "", text = "ကျန်းမာချမ်းသာပါစေ", backgroundId = null))
+        assertNull(m.sealWish(1, forSelf = false, name = " ", text = "ကျန်းမာချမ်းသာပါစေ", backgroundId = null))
+        assertNull(m.sealWish(1, forSelf = true, name = "", text = " ", backgroundId = null))
+    }
+
+    @Test fun startingAgainKeepsOldCardsAndStartsNewPlaces() {
+        val m = model()
+        m.sealWish(0, forSelf = true, name = "", text = "ကျန်းမာချမ်းသာပါစေ", backgroundId = null)
+        m.start()
+        assertTrue(m.state.runId != 42L)
+        assertEquals(1, m.state.sealedWishes.size)
+        assertTrue(m.pendingCards().isEmpty())
+    }
+
+    @Test fun installsFrom100UseTheirStartDayAsTheRound() {
+        prefs.edit().clear().putLong("start", 20000).commit()
+        assertEquals(20000L, AppModel(prefs, Content.load(context)).state.runId)
+    }
+
+    @Test fun cardsAreDrawnAt1080x1350() {
         val m = model()
         for (bg in listOf<String?>(null) + Backgrounds.all.map { it.id }) {
-            val spec = CardSpec("ကျန်းမာချမ်းသာပါစေ", "အမေ", stageLine(0, false), bg, true, m.content.wishClosing)
-            val b = WishCard.render(context, spec)
+            val b = WishCard.render(context, CardSpec("ကျန်းမာချမ်းသာပါစေ", nameLine(false, "အမေ"), stageLine(0), bg, true, m.content.wishClosing))
             assertEquals(1080, b.width)
             assertEquals(1350, b.height)
             save("11-card-${bg ?: "plain"}", b)
         }
+        val self = SealedWish(42, 1, true, "", "စိတ်ငြိမ်းချမ်းပါစေ", "buddha", Days.today())
+        save("11-card-sealed-self", WishCard.render(context, self.spec(m.content.wishClosing, true)))
+        val last = SealedWish(42, 8, false, "မိဘ", "ဤကုသိုလ်ကို အမျှဝေပါသည်", "shwedagon", Days.today())
+        save("11-card-sealed-81days", WishCard.render(context, last.spec(m.content.wishClosing, true)))
     }
 
     @Test fun longWishStillFits() {
         val long = "ဤကုသိုလ်ကောင်းမှုကို မိဘ ဆရာသမား ဆွေမျိုး မိတ်ဆွေ သတ္တဝါအားလုံး အမျှရရှိကြပါစေ၊ ကျန်းမာချမ်းသာ ငြိမ်းချမ်းကြပါစေ"
-        val b = WishCard.render(context, CardSpec(long, "", stageLine(8, true), "bagan", false, "သာဓု သာဓု သာဓု"))
+        val b = WishCard.render(context, CardSpec(long, null, stageLine(8), "bagan", false, "သာဓု သာဓု သာဓု", special = true))
         save("11-card-long", b)
         assertEquals(1350, b.height)
     }
 
-    @Test fun templatesLoadFromContent() {
-        val m = model()
-        assertTrue(m.content.wishTemplates.size >= 6)
-        assertEquals("သာဓု သာဓု သာဓု", m.content.wishClosing)
+    @Test fun wishListsLoadFromContent() {
+        val c = model().content
+        assertTrue(c.wishesSelf.isNotEmpty())
+        assertTrue(c.wishesSomeone.isNotEmpty())
+        assertTrue("အမေ" in c.wishNames)
+        assertEquals("သာဓု သာဓု သာဓု", c.wishClosing)
     }
 
     @Test fun shareOpensChooserWithThePicture() {
-        val b = WishCard.render(context, CardSpec("ကျန်းမာချမ်းသာပါစေ", "", null, "shwedagon", true, ""), 540)
+        val b = WishCard.render(context, CardSpec("ကျန်းမာချမ်းသာပါစေ", null, null, "shwedagon", true, ""), 540)
         WishCard.share(context, b, withLink = true)
         val chooser = shadowOf(context).nextStartedActivity
         assertEquals(Intent.ACTION_CHOOSER, chooser.action)
         @Suppress("DEPRECATION") val send = chooser.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)!!
         assertEquals("image/jpeg", send.type)
         @Suppress("DEPRECATION") val uri = send.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-        assertNotNull(uri)
         assertEquals("content", uri!!.scheme)
         assertEquals(WishCard.PLAY_URL, send.getStringExtra(Intent.EXTRA_TEXT))
     }
@@ -89,18 +138,48 @@ class WishCardTest {
         val m = model()
         var opened = false
         rule.setContent { SatePaDeeTheme { FinishedScreen(m, CountResult.StageDone, 8, onWishCard = { opened = true }) {} } }
-        rule.onNodeWithText("ဆုတောင်းကတ် ပို့မည်").performClick()
+        rule.onNodeWithText("ဆုတောင်းမည်").performClick()
         assertTrue(opened)
     }
 
-    @Test fun screenStartsWithTheStageWishAndChangesWithAChip() {
+    @Test fun homeShowsCardsWaitingToBeMade() {
         val m = model()
-        rule.setContent { SatePaDeeTheme { WishCardScreen(m, 0, false) {} } }
-        // The stage's own wish is both the first chip and the text in the box.
-        rule.onAllNodesWithText("မိသားစု ကျန်းမာ ချမ်းသာပါစေ").assertCountEquals(2)
-        rule.onNodeWithText("လုပ်ငန်း အောင်မြင်ပါစေ").performScrollTo().performClick()
+        var stage = -1
+        rule.setContent { SatePaDeeTheme { HomeScreen(m, onWishCard = { stage = it }) {} } }
+        rule.onNodeWithText("ဆုတောင်းကတ် ၂ ခု ရှိပါသည်").performClick()
+        assertEquals(0, stage)
+    }
+
+    @Test fun someoneNeedsAName() {
+        val m = model()
+        rule.setContent { SatePaDeeTheme { WishCardScreen(m, 42, 1) {} } }
+        rule.onNodeWithText("ဆုတောင်းမည်").performScrollTo().performClick()
+        rule.onNodeWithText("အမည် ထည့်ပါ").assertExists()
+        assertNull(m.sealedWish(42, 1))
+    }
+
+    @Test fun makingTheWishSealsItAndOnlySharingRemains() {
+        val m = model()
+        rule.setContent { SatePaDeeTheme { WishCardScreen(m, 42, 1) {} } }
+        rule.onNodeWithText("ကိုယ်တိုင်").performClick()
+        rule.onNodeWithText("ဆုတောင်းမည်").performScrollTo().performClick()
+        rule.onNodeWithText("ဆုတောင်းမလား").assertExists()
+        rule.onAllNodesWithText("ဆုတောင်းမည်")[1].performClick()
         rule.waitForIdle()
-        rule.onAllNodesWithText("လုပ်ငန်း အောင်မြင်ပါစေ").assertCountEquals(2)
-        rule.onAllNodesWithText("မိသားစု ကျန်းမာ ချမ်းသာပါစေ").assertCountEquals(1)
+        val sealed = m.sealedWish(42, 1)!!
+        assertTrue(sealed.forSelf)
+        rule.onNodeWithText("မျှဝေမည်").assertExists()
+        rule.onAllNodesWithText("ဆုတောင်းမည်").assertCountEquals(0)
+        rule.onRoot().captureRoboImage("build/screenshots/11-wish-sealed.png")
+    }
+
+    @Test fun chartShowsTheCollection() {
+        val m = model()
+        m.sealWish(0, forSelf = false, name = "အမေ", text = "ကျန်းမာချမ်းသာပါစေ", backgroundId = "kyaiktiyo")
+        rule.setContent { SatePaDeeTheme { ChartScreen(m) } }
+        rule.onNodeWithText("ကျွန်ုပ်၏ ဆုတောင်းကတ်များ").performScrollTo()
+        rule.onNodeWithText("ဆုတောင်းရန်").assertExists()
+        assertFalse(m.pendingCards().contains(0))
+        rule.onRoot().captureRoboImage("build/screenshots/11-collection.png")
     }
 }

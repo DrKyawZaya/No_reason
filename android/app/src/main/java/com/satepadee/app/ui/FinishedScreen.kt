@@ -80,9 +80,13 @@ fun FinishedScreen(model: AppModel, result: CountResult, dayIndex: Int?, onWishC
             }
         }
         if (day != null && (result == CountResult.StageDone || result == CountResult.ProgramDone)) {
-            // Wish someone well and share it, now that the stage is complete.
-            PrimaryButton("ဆုတောင်းကတ် ပို့မည်", Modifier.height(60.dp), onClick = onWishCard)
-            SecondaryButton("ပြီးပြီ", onClick = onClose)
+            // Finishing a stage earns one wish card: for oneself or for someone, made once.
+            Text(
+                "ဆုတောင်းကတ် တစ်ခု ရပါပြီ — မိမိကိုယ်တိုင် သို့မဟုတ် ချစ်ရသူအတွက် ဆုတောင်းနိုင်ပါသည်။",
+                style = Type.small.copy(color = Palette.accent), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
+            )
+            PrimaryButton("ဆုတောင်းမည်", Modifier.height(60.dp), onClick = onWishCard)
+            SecondaryButton("နောက်မှ", onClick = onClose)
         } else {
             PrimaryButton("ပြီးပြီ", Modifier.height(60.dp), onClick = onClose)
         }

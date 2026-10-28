@@ -20,8 +20,10 @@ data class Content(
     val woodNote: String,
     val birthDays: List<BirthDay>,
     val woods: List<Wood>,
-    /** Ready-made wishes for the share card, and the line under each wish. */
-    val wishTemplates: List<String> = emptyList(),
+    /** Ready-made wishes for a card for oneself or for someone, quick names, and the line under each wish. */
+    val wishesSelf: List<String> = emptyList(),
+    val wishesSomeone: List<String> = emptyList(),
+    val wishNames: List<String> = emptyList(),
     val wishClosing: String = "",
 ) {
     fun guna(number: Int): Guna = gunas.first { it.number == number }
@@ -52,7 +54,9 @@ data class Content(
                 woodNote = w.getString("note"),
                 birthDays = w.getJSONArray("birthDays").objects().map { BirthDay(it.getString("id"), it.getString("name")) },
                 woods = woods,
-                wishTemplates = wishes?.getJSONArray("templates")?.strings().orEmpty(),
+                wishesSelf = wishes?.optJSONArray("self")?.strings().orEmpty(),
+                wishesSomeone = wishes?.optJSONArray("someone")?.strings().orEmpty(),
+                wishNames = wishes?.optJSONArray("names")?.strings().orEmpty(),
                 wishClosing = wishes?.optString("closing").orEmpty(),
             )
         }

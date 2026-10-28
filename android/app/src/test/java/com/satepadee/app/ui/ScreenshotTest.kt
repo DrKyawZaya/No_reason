@@ -88,7 +88,13 @@ class ScreenshotTest {
         val m = model()
         shot("10-themed-add") { androidx.compose.runtime.CompositionLocalProvider(LocalBackgroundId provides "monastery") { RecitationForm(m) {} } }
     }
-    @Test fun wishCardScreen() { val m = model(); m.setTheme("kyaiktiyo"); shot("11-wish-screen") { WishCardScreen(m, 0, false) {} } }
+    @Test fun wishCardScreen() {
+        model() // writes the sample data
+        val prefs = ApplicationProvider.getApplicationContext<Context>().getSharedPreferences("shot", Context.MODE_PRIVATE)
+        prefs.edit().putString("done", (0..8).joinToString(",")).putLong("runId", 7).commit()
+        val m2 = AppModel(prefs, Content.load(ApplicationProvider.getApplicationContext()))
+        shot("11-wish-screen") { WishCardScreen(m2, 7, 0) {} }
+    }
     @Test fun chart() { val m = model(); shot("3-chart") { ChartScreen(m) } }
     @Test fun custom() { val m = model(); shot("4-add") { RecitationForm(m) {} } }
     @Test fun edit() { val m = model(); shot("4-edit") { RecitationForm(m, editId = "r1") {} } }
