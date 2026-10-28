@@ -64,7 +64,7 @@ class StoreAssetsTest {
             .putLong("start", Days.today() - 12).putString("done", (0..11).joinToString(","))
             .putInt("progressDay", 12).putInt("progressBeads", 63).putInt("progressRounds", 2)
             .putString("wishes", """{"0":"မိသားစု ကျန်းမာ ချမ်းသာပါစေ","1":"စီးပွားရေး အဆင်ပြေပါစေ"}""")
-            .putString("birthDay", "thu").putBoolean("setupDone", true).putBoolean("reminderOn", true)
+            .putString("birthDay", "thu").putBoolean("setupDone", true).putBoolean("reminderOn", true).putLong("runId", 5)
             .putString(
                 "recitations",
                 """[{"id":"r1","name":"မေတ္တာပို့","text":"သဗ္ဗေ သတ္တာ အဝေရာ ဟောန္တု","perRound":108,"dailyRounds":3},
@@ -96,25 +96,44 @@ class StoreAssetsTest {
 
     @Test fun featureGraphic() { val w = wood(); art("feature-1024x500", 1024, 500) { FeatureArt(w) } }
 
+    /** A page as the app shows it, with the chosen background picture behind it. */
+    private fun themed(name: String, themeId: String?, content: @Composable () -> Unit) = screen(name) {
+        androidx.compose.runtime.CompositionLocalProvider(LocalBackgroundId provides themeId) {
+            Box(Modifier.fillMaxSize().pageBackground()) { content() }
+        }
+    }
+
+    // Store order: themed home with a wish card waiting, themed counter, a made wish card, the chart with the
+    // card collection, stage finished, settings with the background picker, birth-day wood, own ပုတီး.
     @Config(qualifiers = "w360dp-h720dp-xxhdpi")
-    @Test fun phoneHome() { val m = model(); screen("phone-1-home") { AppShell(m) } }
+    @Test fun phoneHome() { val m = model(); m.setTheme("shwedagon"); screen("phone-1-home") { AppShell(m) } }
     @Config(qualifiers = "w360dp-h720dp-xxhdpi")
-    @Test fun phoneCounter() { val m = model(); screen("phone-2-counter") { CounterScreen(m, Target.Kozawin) {} } }
+    @Test fun phoneCounter() { val m = model(); m.setTheme("kyaiktiyo"); screen("phone-2-counter") { CounterScreen(m, Target.Kozawin) {} } }
     @Config(qualifiers = "w360dp-h720dp-xxhdpi")
-    @Test fun phoneOnboarding() { val m = model(); screen("phone-3-birthday") { Onboarding(m) {} } }
+    @Test fun phoneWishCard() {
+        val m = model()
+        m.sealWish(0, forSelf = false, name = "အမေ", text = "ကျန်းမာချမ်းသာပါစေ", backgroundId = "shwedagon")
+        themed("phone-3-wish-card", "bagan") { WishCardScreen(m, 5, 0) {} }
+    }
     @Config(qualifiers = "w360dp-h720dp-xxhdpi")
-    @Test fun phoneFinished() { val m = model(); screen("phone-4-stage-done") { FinishedScreen(m, CountResult.StageDone, 8) {} } }
+    @Test fun phoneChart() {
+        val m = model()
+        m.sealWish(0, forSelf = false, name = "အမေ", text = "ကျန်းမာချမ်းသာပါစေ", backgroundId = "shwedagon")
+        themed("phone-4-chart", "bodhi") { ChartScreen(m) }
+    }
     @Config(qualifiers = "w360dp-h720dp-xxhdpi")
-    @Test fun phoneChart() { val m = model(); screen("phone-5-chart") { ChartScreen(m) } }
+    @Test fun phoneFinished() { val m = model(); themed("phone-5-stage-done", "bagan") { FinishedScreen(m, CountResult.StageDone, 8) {} } }
     @Config(qualifiers = "w360dp-h720dp-xxhdpi")
-    @Test fun phoneSettings() { val m = model(); screen("phone-6-settings") { SettingsScreen(m, onAbout = {}) {} } }
+    @Test fun phoneSettings() { val m = model(); m.setTheme("buddha"); themed("phone-6-settings", "buddha") { SettingsScreen(m, onAbout = {}) {} } }
     @Config(qualifiers = "w360dp-h720dp-xxhdpi")
-    @Test fun phoneAdd() { val m = model(); screen("phone-7-add") { RecitationForm(m, editId = "r1") {} } }
+    @Test fun phoneOnboarding() { val m = model(); screen("phone-7-birthday") { Onboarding(m) {} } }
+    @Config(qualifiers = "w360dp-h720dp-xxhdpi")
+    @Test fun phoneAdd() { val m = model(); themed("phone-8-add", "monastery") { RecitationForm(m, editId = "r1") {} } }
 
     @Config(qualifiers = "w800dp-h1280dp-xhdpi")
-    @Test fun tabletHome() { val m = model(); screen("tablet-1-home") { AppShell(m) } }
+    @Test fun tabletHome() { val m = model(); m.setTheme("bagan"); screen("tablet-1-home") { AppShell(m) } }
     @Config(qualifiers = "w800dp-h1280dp-xhdpi")
-    @Test fun tabletCounter() { val m = model(); screen("tablet-2-counter") { CounterScreen(m, Target.Kozawin) {} } }
+    @Test fun tabletCounter() { val m = model(); m.setTheme("shwedagon"); screen("tablet-2-counter") { CounterScreen(m, Target.Kozawin) {} } }
 }
 
 /** A closed ring of beads with the larger guru bead and tassel at the bottom. */
