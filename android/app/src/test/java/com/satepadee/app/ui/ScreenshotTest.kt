@@ -54,15 +54,18 @@ class ScreenshotTest {
     @Test fun counterTap() { val m = model(); shot("2-counter") { CounterScreen(m, Target.Kozawin) {} } }
     @Test fun counterFree() { val m = model(); m.count(Target.Free); shot("2-counter-free") { CounterScreen(m, Target.Free) {} } }
     @Test fun counterThemes() {
+        val m = model()
+        rule.setContent { SatePaDeeTheme { CounterScreen(m, Target.Kozawin) {} } }
         for (b in Backgrounds.all) {
-            val m = model(); m.setTheme(b.id)
-            shot("2-counter-theme-${b.id}") { CounterScreen(m, Target.Kozawin) {} }
+            m.setTheme(b.id)
+            rule.waitForIdle()
+            rule.onRoot().captureRoboImage("build/screenshots/2-counter-theme-${b.id}.png")
         }
     }
     @Test fun chart() { val m = model(); shot("3-chart") { ChartScreen(m) } }
     @Test fun custom() { val m = model(); shot("4-add") { RecitationForm(m) {} } }
     @Test fun edit() { val m = model(); shot("4-edit") { RecitationForm(m, editId = "r1") {} } }
-    @Test fun settings() { val m = model(); shot("5-settings") { SettingsScreen(m, onAbout = {}) {} } }
+    @Test fun settings() { val m = model(); m.setTheme("bagan"); shot("5-settings") { SettingsScreen(m, onAbout = {}) {} } }
     @Test fun about() { val m = model(); shot("8-about") { AboutKozawinScreen(m) {} } }
     @Test fun onboarding() { val m = model(); shot("0-onboarding") { Onboarding(m) {} } }
     @Test fun finishedDay() { val m = model(); shot("9-finished-day") { FinishedScreen(m, com.satepadee.app.data.CountResult.DayDone, 7) {} } }

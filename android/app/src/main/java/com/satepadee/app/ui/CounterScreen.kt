@@ -36,7 +36,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -134,14 +137,17 @@ fun CounterScreen(
                 .clickable(enabled = meaning.isNotEmpty(), role = Role.Button) { showMeaning = !showMeaning },
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(title, style = Type.guna.copy(color = Palette.accent), textAlign = TextAlign.Center)
+            Text(
+                title, textAlign = TextAlign.Center,
+                style = Type.guna.copy(color = Palette.accent, shadow = if (theme != null) Shadow(Color.Black.copy(alpha = 0.85f), Offset(0f, 2f), 10f) else null),
+            )
             if (showMeaning) Text(meaning, style = Type.small.copy(color = Palette.muted), textAlign = TextAlign.Center)
         }
 
         // Counting area: the whole box is the target for taps or swipes.
         Row(
             Modifier.weight(1f).fillMaxWidth().testTag("countArea").clip(RoundedCornerShape(24.dp))
-                .background(Brush.radialGradient(listOf(Palette.surface.copy(alpha = if (theme != null) 0.6f else 1f), Palette.bg.copy(alpha = if (theme != null) 0.6f else 1f))))
+                .background(Brush.radialGradient(listOf(Palette.surface.copy(alpha = if (theme != null) 0.42f else 1f), Palette.bg.copy(alpha = if (theme != null) 0.42f else 1f))))
                 .border(1.dp, Palette.line, RoundedCornerShape(24.dp))
                 .semantics {
                     contentDescription = if (mode == CountMode.Tap) "နှိပ်၍ ရေတွက်ပါ" else "ပွတ်ဆွဲ၍ ရေတွက်ပါ"
