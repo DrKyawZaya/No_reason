@@ -121,7 +121,8 @@ fun MissedDialog(model: AppModel, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss, containerColor = Palette.surface,
         title = { Text("ရက် ${missed.joinToString("၊ ") { Mm.n(it + 1) }} ကို မှတ်တမ်း မရှိပါ", style = Type.heading.copy(color = Palette.accent)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // Scrolls so all three choices stay reachable in landscape.
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Pill("ရက်ကျော်နေပါသည်", Palette.warnSoft, Palette.warn)
                 Text("ကိုးနဝင်းကို ရက်မပျက်မကွက် ဝင်ရပါမည်။ အက်ပ်မသုံးဘဲ စိပ်ခဲ့ပါက \"စိပ်ပြီးပါပြီ\" ကို ရွေးပါ။", style = Type.small.copy(color = Palette.muted))
                 PrimaryButton("အက်ပ်မသုံးဘဲ စိပ်ပြီးပါပြီ") { model.markMissedDone(); onDismiss() }

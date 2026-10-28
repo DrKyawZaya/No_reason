@@ -98,6 +98,8 @@ object Reminders {
             }
             index == -1 -> "ကိုးနဝင်း" to "မနက်ဖြန် တနင်္လာနေ့တွင် ကိုးနဝင်း စတင်ပါမည်။"
             veg != null -> "ကိုးနဝင်း" to veg
+            // Today's day is already recited, or all 81 days are over: nothing to remind about.
+            day != null || (index != null && index >= Kozawin.TOTAL_DAYS) -> null
             else -> "စိပ်ပုတီး" to "ယနေ့ ပုတီးစိပ်ရန် အချိန်ရောက်ပါပြီ။"
         }
     }

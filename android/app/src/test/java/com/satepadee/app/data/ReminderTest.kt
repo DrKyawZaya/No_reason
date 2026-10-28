@@ -59,6 +59,28 @@ class ReminderTest {
         assertTrue(text, text.contains("မနက်ဖြန် သက်သက်လွတ်နေ့"))
     }
 
+    @Test fun noReminderWhenTodayIsDone() {
+        Reminders.prefs(context).edit().putLong("start", Days.today() - 1).putString("done", "1").commit() // day 2, done
+        shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        Reminders.post(context)
+        assertEquals(0, shadowOf(nm).allNotifications.size)
+    }
+
+    @Test fun todayDoneStillMentionsVegetarianTomorrow() {
+        Reminders.prefs(context).edit().putLong("start", Days.today() - 3).putString("done", "3").commit() // day 4, done; day 5 is vegetarian
+        shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        Reminders.post(context)
+        val text = shadowOf(nm).allNotifications.single().extras.getCharSequence(NotificationCompat.EXTRA_TEXT).toString()
+        assertEquals("မနက်ဖြန် သက်သက်လွတ်နေ့ ဖြစ်ပါသည်။", text)
+    }
+
+    @Test fun noReminderAfterProgramIsOver() {
+        Reminders.prefs(context).edit().putLong("start", Days.today() - Kozawin.TOTAL_DAYS).commit()
+        shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
+        Reminders.post(context)
+        assertEquals(0, shadowOf(nm).allNotifications.size)
+    }
+
     @Test fun noNotificationWithoutPermission() {
         shadowOf(context).denyPermissions(Manifest.permission.POST_NOTIFICATIONS)
         Reminders.post(context)
