@@ -74,11 +74,13 @@ class ReminderTest {
         assertEquals("မနက်ဖြန် သက်သက်လွတ်နေ့ ဖြစ်ပါသည်။", text)
     }
 
-    @Test fun noReminderAfterProgramIsOver() {
+    @Test fun gentleReminderAfterProgramIsOver() {
         Reminders.prefs(context).edit().putLong("start", Days.today() - Kozawin.TOTAL_DAYS).commit()
         shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
         Reminders.post(context)
-        assertEquals(0, shadowOf(nm).allNotifications.size)
+        val n = shadowOf(nm).allNotifications.single()
+        assertEquals("စိပ်ပုတီး", n.extras.getString(NotificationCompat.EXTRA_TITLE))
+        assertEquals("ယနေ့လည်း ပုတီးစိပ်ရန် အချိန်ရောက်ပါပြီ။", n.extras.getCharSequence(NotificationCompat.EXTRA_TEXT).toString())
     }
 
     @Test fun noNotificationWithoutPermission() {
