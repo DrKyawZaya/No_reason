@@ -57,7 +57,7 @@ fun Onboarding(model: AppModel, onDone: () -> Unit) {
     }
 
     Column(
-        Modifier.fillMaxSize().background(Palette.bg).safeDrawingPadding().padding(20.dp).readableWidth(),
+        Modifier.fillMaxSize().pageBackground().safeDrawingPadding().padding(20.dp).readableWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally)) {

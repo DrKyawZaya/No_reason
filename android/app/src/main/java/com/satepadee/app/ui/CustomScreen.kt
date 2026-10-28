@@ -59,7 +59,7 @@ fun RecitationForm(model: AppModel, editId: String? = null, onDone: () -> Unit) 
     val context = LocalContext.current
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> remind = granted }
 
-    Column(Modifier.fillMaxSize().background(Palette.bg).safeDrawingPadding()) {
+    Column(Modifier.fillMaxSize().pageBackground().safeDrawingPadding()) {
         ScreenColumn {
             TopBar(if (existing != null) "ပုတီး ပြင်ရန်" else "ပုတီးအသစ်", onDone)
             Field("အမည်", name, "ဥပမာ - မေတ္တာပို့") { name = it; nameMissing = false }
@@ -132,7 +132,10 @@ private fun Field(
             value, onChange, Modifier.fillMaxWidth(), textStyle = Type.body, minLines = lines,
             placeholder = { if (hint.isNotEmpty()) Text(hint, style = Type.small.copy(color = Palette.muted)) },
             keyboardOptions = if (numeric) KeyboardOptions(keyboardType = KeyboardType.Number) else KeyboardOptions.Default,
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Palette.accent, unfocusedBorderColor = Palette.line, cursorColor = Palette.accent),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Palette.accent, unfocusedBorderColor = Palette.line, cursorColor = Palette.accent,
+                focusedContainerColor = Palette.bg.copy(alpha = 0.75f), unfocusedContainerColor = Palette.bg.copy(alpha = 0.75f),
+            ),
         )
     }
 }

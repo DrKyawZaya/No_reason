@@ -58,7 +58,7 @@ fun SettingsScreen(model: AppModel, onAbout: () -> Unit, onBack: () -> Unit) {
         else model.setReminder(on)
     }
 
-    Column(Modifier.fillMaxSize().background(Palette.bg).safeDrawingPadding()) {
+    Column(Modifier.fillMaxSize().pageBackground().safeDrawingPadding()) {
         ScreenColumn {
             TopBar("ဆက်တင်", onBack)
 
@@ -148,7 +148,7 @@ fun AboutKozawinScreen(model: AppModel, onBack: () -> Unit) {
     val content = model.content
     var openGuna by remember { mutableStateOf<Int?>(null) }
     var openStage by remember { mutableStateOf<Int?>(null) }
-    Column(Modifier.fillMaxSize().background(Palette.bg).safeDrawingPadding()) {
+    Column(Modifier.fillMaxSize().pageBackground().safeDrawingPadding()) {
         ScreenColumn {
             TopBar(content.kozawinName, onBack)
             Text(content.kozawinSummary, style = Type.body)

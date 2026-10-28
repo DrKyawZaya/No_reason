@@ -32,7 +32,7 @@ fun FinishedScreen(model: AppModel, result: CountResult, dayIndex: Int?, onClose
     val content = model.content
     val day = dayIndex?.let(Kozawin::day)
     Column(
-        Modifier.fillMaxSize().background(Palette.bg).safeDrawingPadding().padding(20.dp).readableWidth(),
+        Modifier.fillMaxSize().pageBackground().safeDrawingPadding().padding(20.dp).readableWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Column(

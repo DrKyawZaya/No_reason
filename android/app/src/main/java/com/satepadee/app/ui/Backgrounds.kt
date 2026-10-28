@@ -17,6 +17,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +44,23 @@ object Backgrounds {
     )
 
     fun find(id: String?): Background? = all.firstOrNull { it.id == id }
+}
+
+/** The chosen background id for every page; provided once by AppShell. */
+val LocalBackgroundId = staticCompositionLocalOf<String?> { null }
+
+/** Scrim for text pages: darker than the counter's so cards and text stay easy to read. */
+private val pageScrim = Brush.verticalGradient(
+    0f to Palette.bg.copy(alpha = 0.55f), 0.45f to Palette.bg.copy(alpha = 0.72f), 1f to Palette.bg.copy(alpha = 0.9f),
+)
+
+/** Page background: plain teak, or the chosen picture under a dark layer. Apply before any padding. */
+@Composable
+fun Modifier.pageBackground(): Modifier {
+    val bg = Backgrounds.find(LocalBackgroundId.current) ?: return this.background(Palette.bg)
+    return this.background(Palette.bg)
+        .paint(painterResource(bg.image), contentScale = ContentScale.Crop, alignment = Alignment.TopCenter)
+        .background(pageScrim)
 }
 
 /** The picture with a dark layer over it so numbers and beads stay easy to read. */

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +45,11 @@ private enum class Tab(val label: String) { Home("ယနေ့"), Chart("ဇယ�
  */
 @Composable
 fun AppShell(model: AppModel, openTarget: String? = null, onOpened: () -> Unit = {}) {
+    CompositionLocalProvider(LocalBackgroundId provides model.state.themeId) { Shell(model, openTarget, onOpened) }
+}
+
+@Composable
+private fun Shell(model: AppModel, openTarget: String?, onOpened: () -> Unit) {
     var tab by rememberSaveable { mutableStateOf(Tab.Home) }
     var page by rememberSaveable { mutableStateOf<String?>(null) }      // "settings", "about", "add", "edit:<id>"
     var counting by rememberSaveable { mutableStateOf<String?>(null) }  // Target.key
@@ -77,7 +83,7 @@ fun AppShell(model: AppModel, openTarget: String? = null, onOpened: () -> Unit =
     page?.takeIf { it.startsWith("edit:") }?.let { p -> RecitationForm(model, editId = p.removePrefix("edit:")) { page = null }; return }
     BackHandler(enabled = tab != Tab.Home) { tab = Tab.Home }
 
-    Column(Modifier.fillMaxSize().background(Palette.bg).statusBarsPadding()) {
+    Column(Modifier.fillMaxSize().pageBackground().statusBarsPadding()) {
         Box(Modifier.weight(1f)) {
             when (tab) {
                 Tab.Home -> HomeScreen(model, onSettings = { page = "settings" }, onAdd = { page = "add" }, onEdit = { page = "edit:$it" }) { counting = it.key }
@@ -85,7 +91,7 @@ fun AppShell(model: AppModel, openTarget: String? = null, onOpened: () -> Unit =
             }
         }
         HorizontalDivider(color = Palette.line)
-        Row(Modifier.fillMaxWidth().background(Palette.surface).navigationBarsPadding().padding(top = 8.dp, bottom = 10.dp)) {
+        Row(Modifier.fillMaxWidth().background(Palette.surface.copy(alpha = 0.92f)).navigationBarsPadding().padding(top = 8.dp, bottom = 10.dp)) {
             for (t in Tab.entries) {
                 val on = t == tab
                 val color = if (on) Palette.accent else Palette.muted

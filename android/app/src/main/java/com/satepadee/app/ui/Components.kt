@@ -44,7 +44,7 @@ fun Card(modifier: Modifier = Modifier, border: Color = Palette.line, content: @
         modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Palette.surface)
+            .background(Palette.surface.copy(alpha = if (LocalBackgroundId.current != null) 0.86f else 1f))
             .border(1.dp, border, RoundedCornerShape(16.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),

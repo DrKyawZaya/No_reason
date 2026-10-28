@@ -2,6 +2,7 @@ package com.satepadee.app.ui
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -61,6 +62,31 @@ class ScreenshotTest {
             rule.waitForIdle()
             rule.onRoot().captureRoboImage("build/screenshots/2-counter-theme-${b.id}.png")
         }
+    }
+    @Test fun themedHome() { val m = model(); m.setTheme("shwedagon"); shot("10-themed-home") { AppShell(m) } }
+    @Test fun themedChart() {
+        val m = model()
+        shot("10-themed-chart") {
+            androidx.compose.runtime.CompositionLocalProvider(LocalBackgroundId provides "bodhi") {
+                androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxSize().pageBackground()) { ChartScreen(m) }
+            }
+        }
+    }
+    @Test fun themedSettings() {
+        val m = model(); m.setTheme("buddha")
+        shot("10-themed-settings") { androidx.compose.runtime.CompositionLocalProvider(LocalBackgroundId provides "buddha") { SettingsScreen(m, onAbout = {}) {} } }
+    }
+    @Test fun themedFinished() {
+        val m = model()
+        shot("10-themed-finished") {
+            androidx.compose.runtime.CompositionLocalProvider(LocalBackgroundId provides "bagan") {
+                FinishedScreen(m, com.satepadee.app.data.CountResult.StageDone, 8) {}
+            }
+        }
+    }
+    @Test fun themedAdd() {
+        val m = model()
+        shot("10-themed-add") { androidx.compose.runtime.CompositionLocalProvider(LocalBackgroundId provides "monastery") { RecitationForm(m) {} } }
     }
     @Test fun chart() { val m = model(); shot("3-chart") { ChartScreen(m) } }
     @Test fun custom() { val m = model(); shot("4-add") { RecitationForm(m) {} } }
