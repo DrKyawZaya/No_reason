@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only the wish card picture is shared, from the app's cache. -->
+<paths>
+    <cache-path name="cards" path="cards/" />
+</paths>

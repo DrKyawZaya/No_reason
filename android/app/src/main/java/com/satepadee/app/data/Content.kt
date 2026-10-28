@@ -20,15 +20,19 @@ data class Content(
     val woodNote: String,
     val birthDays: List<BirthDay>,
     val woods: List<Wood>,
+    /** Ready-made wishes for the share card, and the line under each wish. */
+    val wishTemplates: List<String> = emptyList(),
+    val wishClosing: String = "",
 ) {
     fun guna(number: Int): Guna = gunas.first { it.number == number }
     fun birthDayName(id: String?): String = birthDays.firstOrNull { it.id == id }?.name.orEmpty()
 
     companion object {
-        /** Reads content/kozawin.json and content/woods.json, packaged as assets. */
+        /** Reads content/kozawin.json, woods.json and wishes.json, packaged as assets. */
         fun load(context: Context): Content {
             val k = JSONObject(context.assets.open("kozawin.json").bufferedReader().use { it.readText() })
             val w = JSONObject(context.assets.open("woods.json").bufferedReader().use { it.readText() })
+            val wishes = runCatching { JSONObject(context.assets.open("wishes.json").bufferedReader().use { it.readText() }) }.getOrNull()
             val gunas = k.getJSONArray("gunas").objects().map {
                 Guna(it.getInt("number"), it.getString("pali"), it.getJSONArray("meaning").strings())
             }
@@ -48,6 +52,8 @@ data class Content(
                 woodNote = w.getString("note"),
                 birthDays = w.getJSONArray("birthDays").objects().map { BirthDay(it.getString("id"), it.getString("name")) },
                 woods = woods,
+                wishTemplates = wishes?.getJSONArray("templates")?.strings().orEmpty(),
+                wishClosing = wishes?.optString("closing").orEmpty(),
             )
         }
 

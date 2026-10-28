@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.satepadee.app.data.AppModel
 import com.satepadee.app.data.CountResult
+import com.satepadee.app.data.Kozawin
 import com.satepadee.app.data.Target
 
 private enum class Tab(val label: String) { Home("ယနေ့"), Chart("ဇယား") }
@@ -51,7 +52,7 @@ fun AppShell(model: AppModel, openTarget: String? = null, onOpened: () -> Unit =
 @Composable
 private fun Shell(model: AppModel, openTarget: String?, onOpened: () -> Unit) {
     var tab by rememberSaveable { mutableStateOf(Tab.Home) }
-    var page by rememberSaveable { mutableStateOf<String?>(null) }      // "settings", "about", "add", "edit:<id>"
+    var page by rememberSaveable { mutableStateOf<String?>(null) }      // "settings", "about", "add", "edit:<id>", "card:<stage>:<programDone>"
     var counting by rememberSaveable { mutableStateOf<String?>(null) }  // Target.key
     var finished by rememberSaveable { mutableStateOf<String?>(null) }  // "Result:dayIndex"
 
@@ -67,7 +68,15 @@ private fun Shell(model: AppModel, openTarget: String?, onOpened: () -> Unit) {
 
     finished?.let { f ->
         val (r, d) = f.split(':')
-        FinishedScreen(model, CountResult.valueOf(r), d.toIntOrNull()) { finished = null }
+        val result = CountResult.valueOf(r)
+        val dayIndex = d.toIntOrNull()
+        FinishedScreen(
+            model, result, dayIndex,
+            onWishCard = {
+                page = "card:${dayIndex?.let { Kozawin.day(it).stage } ?: ""}:${result == CountResult.ProgramDone}"
+                finished = null
+            },
+        ) { finished = null }
         return
     }
     counting?.let { key ->
@@ -79,6 +88,11 @@ private fun Shell(model: AppModel, openTarget: String?, onOpened: () -> Unit) {
         "settings" -> { SettingsScreen(model, onAbout = { page = "about" }) { page = null }; return }
         "about" -> { AboutKozawinScreen(model) { page = "settings" }; return }
         "add" -> { RecitationForm(model) { page = null }; return }
+    }
+    page?.takeIf { it.startsWith("card:") }?.let { p ->
+        val (stage, all) = p.removePrefix("card:").split(':')
+        WishCardScreen(model, stage.toIntOrNull(), all.toBoolean()) { page = null }
+        return
     }
     page?.takeIf { it.startsWith("edit:") }?.let { p -> RecitationForm(model, editId = p.removePrefix("edit:")) { page = null }; return }
     BackHandler(enabled = tab != Tab.Home) { tab = Tab.Home }

@@ -23,6 +23,15 @@
             </intent-filter>
         </activity>
 
+        <!-- Lets other apps read the wish card picture the user chooses to share. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+        </provider>
+
         <receiver android:name=".data.ReminderReceiver" android:exported="false" />
         <receiver android:name=".data.RescheduleReceiver" android:exported="false">
             <intent-filter>

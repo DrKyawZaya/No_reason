@@ -27,7 +27,7 @@ import com.satepadee.app.data.Mm
 
 /** One calm screen after the day's rounds (or a stage, or all 81 days) are complete. */
 @Composable
-fun FinishedScreen(model: AppModel, result: CountResult, dayIndex: Int?, onClose: () -> Unit) {
+fun FinishedScreen(model: AppModel, result: CountResult, dayIndex: Int?, onWishCard: () -> Unit = {}, onClose: () -> Unit) {
     BackHandler(onBack = onClose)
     val content = model.content
     val day = dayIndex?.let(Kozawin::day)
@@ -79,6 +79,12 @@ fun FinishedScreen(model: AppModel, result: CountResult, dayIndex: Int?, onClose
                 }
             }
         }
-        PrimaryButton("ပြီးပြီ", Modifier.height(60.dp), onClick = onClose)
+        if (day != null && (result == CountResult.StageDone || result == CountResult.ProgramDone)) {
+            // Wish someone well and share it, now that the stage is complete.
+            PrimaryButton("ဆုတောင်းကတ် ပို့မည်", Modifier.height(60.dp), onClick = onWishCard)
+            SecondaryButton("ပြီးပြီ", onClick = onClose)
+        } else {
+            PrimaryButton("ပြီးပြီ", Modifier.height(60.dp), onClick = onClose)
+        }
     }
 }
