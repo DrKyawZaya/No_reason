@@ -114,7 +114,10 @@ fun CounterScreen(
             Spacer(Modifier.weight(1f))
             Text(
                 if (goal > 0) "${Mm.n(progress.rounds)} / ${Mm.n(goal)} ပတ်" else "${Mm.n(progress.rounds)} ပတ်",
-                style = Type.heading.copy(color = Palette.muted),
+                style = Type.heading.copy(
+                    color = if (theme != null) Palette.fg else Palette.muted,
+                    shadow = if (theme != null) Shadow(Color.Black.copy(alpha = 0.85f), Offset(0f, 2f), 10f) else null,
+                ),
             )
             if (target == Target.Free && total > 0) {
                 Text(

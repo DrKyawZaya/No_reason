@@ -37,6 +37,7 @@ data class Background(val id: String, val name: String, @DrawableRes val image: 
 object Backgrounds {
     val all = listOf(
         Background("shwedagon", "ရွှေတိဂုံ", R.drawable.theme_shwedagon, R.drawable.theme_shwedagon_thumb),
+        Background("kyaiktiyo", "ကျိုက်ထီးရိုး", R.drawable.theme_kyaiktiyo, R.drawable.theme_kyaiktiyo_thumb),
         Background("bagan", "ပုဂံ", R.drawable.theme_bagan, R.drawable.theme_bagan_thumb),
         Background("buddha", "ဘုရားရှင်", R.drawable.theme_buddha, R.drawable.theme_buddha_thumb),
         Background("monastery", "တောင်ပေါ် ကျောင်း", R.drawable.theme_monastery, R.drawable.theme_monastery_thumb),
