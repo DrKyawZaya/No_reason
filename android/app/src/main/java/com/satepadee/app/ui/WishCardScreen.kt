@@ -1,5 +1,6 @@
 package com.satepadee.app.ui
 
+import android.graphics.Bitmap
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -8,17 +9,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -30,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -46,6 +53,9 @@ import androidx.compose.ui.unit.dp
 import com.satepadee.app.data.AppModel
 import com.satepadee.app.data.Mm
 import com.satepadee.app.data.SealedWish
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 /**
  * The wish card earned by finishing a stage. Made once (for oneself or for someone), then sealed:
@@ -83,46 +93,41 @@ private fun MakeCard(model: AppModel, stage: Int, onBack: () -> Unit) {
         wish.trim(), nameLine(forSelf, name), stageLine(stage), bgId, footer = true, closing = content.wishClosing,
         special = stage == com.satepadee.app.data.Kozawin.STAGES - 1,
     )
-    val preview = remember(spec) { WishCard.render(context, spec, width = 540) }
+    val preview = rememberPreview(spec)
 
-    Column(Modifier.fillMaxSize().pageBackground().safeDrawingPadding()) {
-        ScreenColumn {
-            TopBar(TITLE, onBack)
-            CardPreview(preview)
-
-            Card {
-                Text("ဘယ်သူ့အတွက် ဆုတောင်းမလဲ", style = Type.heading)
-                Choice(listOf(false to "တစ်ယောက်ယောက်", true to "ကိုယ်တိုင်"), forSelf) { forSelf = it; problem = null }
-                if (!forSelf) {
-                    Chips(content.wishNames, name) { name = it; problem = null }
-                    CardField("အမည်", name, hint = "ဥပမာ - အမေ") { name = it.take(30); problem = null }
-                }
+    CardPage(preview, onBack) {
+        Card {
+            Text("ဘယ်သူ့အတွက် ဆုတောင်းမလဲ", style = Type.heading)
+            Choice(listOf(false to "တစ်ယောက်ယောက်", true to "ကိုယ်တိုင်"), forSelf) { forSelf = it; problem = null }
+            if (!forSelf) {
+                Chips(content.wishNames, name) { name = it; problem = null }
+                CardField("အမည်", name, hint = "ဥပမာ - အမေ") { name = it.take(30); problem = null }
             }
+        }
 
-            Card {
-                Text("ဆုတောင်း", style = Type.heading)
-                Chips(choices, wish) { wish = it; problem = null }
-                CardField("ကိုယ်တိုင် ရေးနိုင်ပါသည်", wish, lines = 2) { wish = it.take(120); problem = null }
-            }
+        Card {
+            Text("ဆုတောင်း", style = Type.heading)
+            Chips(choices, wish) { wish = it; problem = null }
+            CardField("ကိုယ်တိုင် ရေးနိုင်ပါသည်", wish, lines = 2) { wish = it.take(120); problem = null }
+        }
 
-            Card {
-                Text("နောက်ခံပုံ", style = Type.heading)
-                BackgroundPicker(bgId) { bgId = it }
-            }
+        Card {
+            Text("နောက်ခံပုံ", style = Type.heading)
+            BackgroundPicker(bgId) { bgId = it }
+        }
 
-            problem?.let { Text(it, style = Type.body.copy(color = Palette.warn), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) }
-            Text(
-                "ဆုတောင်းပြီးပါက ပြင်၍ မရတော့ပါ။", style = Type.small.copy(color = Palette.muted),
-                textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
-            )
-            PrimaryButton("ဆုတောင်းမည်", Modifier.height(60.dp)) {
-                problem = when {
-                    wish.isBlank() -> "ဆုတောင်းစာ ထည့်ပါ"
-                    !forSelf && name.isBlank() -> "အမည် ထည့်ပါ"
-                    else -> null
-                }
-                if (problem == null) confirm = true
+        problem?.let { Text(it, style = Type.body.copy(color = Palette.warn), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) }
+        Text(
+            "ဆုတောင်းပြီးပါက ပြင်၍ မရတော့ပါ။", style = Type.small.copy(color = Palette.muted),
+            textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
+        )
+        PrimaryButton("ဆုတောင်းမည်", Modifier.height(60.dp)) {
+            problem = when {
+                wish.isBlank() -> "ဆုတောင်းစာ ထည့်ပါ"
+                !forSelf && name.isBlank() -> "အမည် ထည့်ပါ"
+                else -> null
             }
+            if (problem == null) confirm = true
         }
     }
 
@@ -146,46 +151,87 @@ private fun SealedCard(model: AppModel, wish: SealedWish, onBack: () -> Unit) {
     val context = LocalContext.current
     var footer by rememberSaveable { mutableStateOf(true) }
     val spec = wish.spec(model.content.wishClosing, footer)
-    val preview = remember(spec) { WishCard.render(context, spec, width = 540) }
+    val preview = rememberPreview(spec)
 
-    Column(Modifier.fillMaxSize().pageBackground().safeDrawingPadding()) {
-        ScreenColumn {
-            TopBar(TITLE, onBack)
-            CardPreview(preview)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Pill("ဆုတောင်းပြီး · ${dateText(wish.madeDay)}", Palette.jadeSoft, Palette.jade)
+    CardPage(preview, onBack) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            Pill("ဆုတောင်းပြီး · ${dateText(wish.madeDay)}", Palette.jadeSoft, Palette.jade)
+        }
+        Text(
+            "ဤဆုတောင်းကို ပြင်၍ မရပါ။ မျှဝေနိုင်ပါသည်။", style = Type.small.copy(color = Palette.muted),
+            textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
+        )
+        Card {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("app အမည်နှင့် Play link ပြမည်", style = Type.body, modifier = Modifier.weight(1f))
+                Switch(
+                    footer, { footer = it },
+                    colors = SwitchDefaults.colors(checkedTrackColor = Palette.accent, checkedThumbColor = Palette.ink, uncheckedTrackColor = Palette.sunk),
+                )
             }
-            Text(
-                "ဤဆုတောင်းကို ပြင်၍ မရပါ။ မျှဝေနိုင်ပါသည်။", style = Type.small.copy(color = Palette.muted),
-                textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
-            )
-            Card {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("app အမည်နှင့် Play link ပြမည်", style = Type.body, modifier = Modifier.weight(1f))
-                    Switch(
-                        footer, { footer = it },
-                        colors = SwitchDefaults.colors(checkedTrackColor = Palette.accent, checkedThumbColor = Palette.ink, uncheckedTrackColor = Palette.sunk),
-                    )
-                }
-            }
-            PrimaryButton("မျှဝေမည်", Modifier.height(60.dp)) {
-                WishCard.share(context, WishCard.render(context, spec), withLink = footer)
-            }
-            if (Build.VERSION.SDK_INT >= 29) {
-                SecondaryButton("ဓာတ်ပုံ သိမ်းမည်") {
-                    val ok = WishCard.saveToGallery(context, WishCard.render(context, spec))
-                    Toast.makeText(context, if (ok) "ဓာတ်ပုံ သိမ်းပြီးပါပြီ" else "မသိမ်းနိုင်ပါ", Toast.LENGTH_SHORT).show()
-                }
+        }
+        PrimaryButton("မျှဝေမည်", Modifier.height(60.dp)) {
+            WishCard.share(context, WishCard.render(context, spec), withLink = footer)
+        }
+        if (Build.VERSION.SDK_INT >= 29) {
+            SecondaryButton("ဓာတ်ပုံ သိမ်းမည်") {
+                val ok = WishCard.saveToGallery(context, WishCard.render(context, spec))
+                Toast.makeText(context, if (ok) "ဓာတ်ပုံ သိမ်းပြီးပါပြီ" else "မသိမ်းနိုင်ပါ", Toast.LENGTH_SHORT).show()
             }
         }
     }
 }
 
+/**
+ * Title, preview and the controls under it. When the screen is wider than tall (a phone on its side),
+ * the preview sits on the left at the full height and the controls scroll on the right.
+ */
 @Composable
-private fun CardPreview(bitmap: android.graphics.Bitmap) {
+private fun CardPage(preview: Bitmap, onBack: () -> Unit, controls: @Composable ColumnScope.() -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxSize().pageBackground().safeDrawingPadding()) {
+        if (maxWidth > maxHeight) {
+            Row(Modifier.fillMaxSize().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                CardPreview(preview, Modifier.fillMaxHeight())
+                Column(
+                    Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    TopBar(TITLE, onBack)
+                    controls()
+                }
+            }
+        } else {
+            ScreenColumn {
+                TopBar(TITLE, onBack)
+                CardPreview(preview, Modifier.fillMaxWidth())
+                controls()
+            }
+        }
+    }
+}
+
+/**
+ * The preview picture. Drawn straight away the first time; after a change it is drawn off the main thread
+ * once typing pauses, so letters appear without delay. Until then the last picture stays.
+ */
+@Composable
+private fun rememberPreview(spec: CardSpec): Bitmap {
+    val context = LocalContext.current
+    val first = remember { spec to WishCard.render(context, spec, width = 540) }
+    val card by produceState(first.second, spec) {
+        if (spec == first.first) { value = first.second; return@produceState }
+        delay(120)
+        value = withContext(Dispatchers.Default) { WishCard.render(context, spec, width = 540) }
+    }
+    return card
+}
+
+/** [size] gives one side (fillMaxWidth or fillMaxHeight); the other follows the card's 4:5 shape. */
+@Composable
+private fun CardPreview(bitmap: Bitmap, size: Modifier) {
     Image(
         bitmap.asImageBitmap(), contentDescription = "ဆုတောင်းကတ်",
-        modifier = Modifier.fillMaxWidth().aspectRatio(WishCard.WIDTH / WishCard.HEIGHT.toFloat())
+        modifier = size.aspectRatio(WishCard.WIDTH / WishCard.HEIGHT.toFloat(), matchHeightConstraintsFirst = true)
             .clip(RoundedCornerShape(16.dp)).border(1.dp, Palette.line, RoundedCornerShape(16.dp)).testTag("cardPreview"),
     )
 }

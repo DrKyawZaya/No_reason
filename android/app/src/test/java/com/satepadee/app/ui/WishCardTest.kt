@@ -6,12 +6,17 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.satepadee.app.data.AppModel
@@ -171,6 +176,28 @@ class WishCardTest {
         rule.onNodeWithText("မျှဝေမည်").assertExists()
         rule.onAllNodesWithText("ဆုတောင်းမည်").assertCountEquals(0)
         rule.onRoot().captureRoboImage("build/screenshots/11-wish-sealed.png")
+    }
+
+    @Config(qualifiers = "w844dp-h390dp-xxhdpi")
+    @Test fun onItsSideThePreviewSitsBesideTheControls() {
+        val m = model()
+        rule.setContent { SatePaDeeTheme { WishCardScreen(m, 42, 1) {} } }
+        val preview = rule.onNodeWithTag("cardPreview").getUnclippedBoundsInRoot()
+        val root = rule.onRoot().getUnclippedBoundsInRoot()
+        assertTrue("whole preview on screen", preview.bottom <= root.bottom)
+        assertTrue("preview on the left", preview.right < root.right / 2)
+        rule.onNodeWithText("ဘယ်သူ့အတွက် ဆုတောင်းမလဲ").assertIsDisplayed()
+        rule.onRoot().captureRoboImage("build/screenshots/11-wish-landscape.png")
+    }
+
+    @Test fun typingKeepsTheTextAndThePreviewCatchesUp() {
+        val m = model()
+        rule.setContent { SatePaDeeTheme { WishCardScreen(m, 42, 1) {} } }
+        rule.onAllNodes(hasSetTextAction())[0].performTextInput("ညီမ")
+        rule.onAllNodesWithText("ညီမ")[0].assertExists()
+        rule.onNodeWithText("ဆုတောင်းမည်").performScrollTo().performClick()
+        rule.onNodeWithText("ဆုတောင်းမလား").assertExists()
+        assertNull("not made until confirmed", m.sealedWish(42, 1))
     }
 
     @Test fun chartShowsTheCollection() {

@@ -18,6 +18,7 @@ import android.provider.MediaStore
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import android.util.LruCache
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.FileProvider
@@ -75,11 +76,9 @@ object WishCard {
         val picture = Backgrounds.find(spec.backgroundId)
         if (picture != null) {
             // The pictures are 9:16 with the pagoda or statue near the top; keep the top part.
-            val opts = BitmapFactory.Options().apply { inSampleSize = if (w < WIDTH / 2) 2 else 1 }
-            val src = BitmapFactory.decodeResource(context.resources, picture.image, opts)
+            val src = picture(context, picture.image, if (w < WIDTH / 2) 2 else 1)
             val cropH = (src.width * h / w.toFloat()).toInt().coerceAtMost(src.height)
             c.drawBitmap(src, Rect(0, 0, src.width, cropH), Rect(0, 0, w, h), Paint(Paint.FILTER_BITMAP_FLAG))
-            src.recycle()
         } else {
             c.drawRect(0f, 0f, w.toFloat(), h.toFloat(), Paint().apply {
                 shader = LinearGradient(0f, 0f, 0f, h.toFloat(), Palette.sunk.toArgb(), bg, Shader.TileMode.CLAMP)
@@ -150,6 +149,18 @@ object WishCard {
             .setLineSpacing(0f, 1.2f)
             .setIncludePad(true)
             .build()
+    }
+
+    // Decoding a background takes tens of milliseconds, too slow to repeat for every letter typed.
+    // Two full-size pictures plus the small ones fit in 16 MB.
+    private val pictures = object : LruCache<String, Bitmap>(16 * 1024 * 1024) {
+        override fun sizeOf(key: String, value: Bitmap) = value.byteCount
+    }
+
+    private fun picture(context: Context, res: Int, sampleSize: Int): Bitmap {
+        val key = "$res/$sampleSize"
+        return pictures.get(key) ?: BitmapFactory.decodeResource(context.resources, res, BitmapFactory.Options().apply { inSampleSize = sampleSize })
+            .also { pictures.put(key, it) }
     }
 
     private fun withAlpha(color: Int, alpha: Int) = (color and 0x00FFFFFF) or (alpha shl 24)
