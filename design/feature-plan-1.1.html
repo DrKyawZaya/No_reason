@@ -1,0 +1,185 @@
+<title>စိပ်ပုတီး Feature Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Fraunces:opsz,wght@9..144,600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column. Order of sections follows the order of work: save button, themes, wish cards, releases, decisions. */
+:root {
+  --bg:#f6efe4; --panel:#fffaf2; --fg:#2a1d12; --muted:#7a6550; --line:#e3d4bf; --accent:#a8661c; --soft:#f1e0c4; --ok:#2f7a4c;
+  --display:"Fraunces", Georgia, serif; --body:"Source Sans 3","Padauk",system-ui,sans-serif; --mm:"Padauk","Myanmar Text",system-ui,sans-serif;
+  /* The app itself is always dark, so the illustrations keep their own fixed colours in both page themes */
+  --m-bg:#16110c; --m-surface:#211912; --m-fg:#f2e5d1; --m-muted:#b29c80; --m-accent:#eba443; --m-line:#3b2e22;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#16110c; --panel:#211912; --fg:#f2e5d1; --muted:#b29c80; --line:#3b2e22; --accent:#eba443; --soft:#3a2a17; --ok:#6cc08b; color-scheme:dark } }
+:root[data-theme="dark"] { --bg:#16110c; --panel:#211912; --fg:#f2e5d1; --muted:#b29c80; --line:#3b2e22; --accent:#eba443; --soft:#3a2a17; --ok:#6cc08b; color-scheme:dark }
+body { background:var(--bg); color:var(--fg); font:16px/1.6 var(--body); padding:32px 16px 72px }
+main { max-width:780px; margin:0 auto; display:flex; flex-direction:column; gap:44px }
+h1 { font:600 2.3rem/1.15 var(--display); margin:0; text-wrap:balance }
+h2 { font:600 1.45rem/1.3 var(--display); margin:0 0 10px; text-wrap:balance }
+h3 { font:600 1.05rem/1.3 var(--body); margin:18px 0 6px }
+p { margin:6px 0; max-width:68ch } ul, ol { margin:6px 0; padding-left:1.3em; max-width:68ch } li { margin:4px 0 }
+.sub { color:var(--muted) } .mm { font-family:var(--mm) }
+code { background:var(--soft); padding:1px 5px; border-radius:4px; font-size:.9em }
+.tag { display:inline-block; font-size:.78rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase; background:var(--soft); color:var(--accent); border-radius:5px; padding:1px 8px; margin-right:6px }
+.box { background:var(--soft); border-radius:10px; padding:14px 16px }
+.box p { margin:0 }
+.tw { overflow-x:auto }
+table { border-collapse:collapse; width:100%; font-size:.95rem; min-width:520px }
+th, td { text-align:left; border-top:1px solid var(--line); padding:8px 12px 8px 0; vertical-align:top }
+th { font-size:.8rem; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); border-top:0 }
+.themes { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; margin:14px 0 }
+.theme { min-width:0 } .theme svg { display:block; width:100%; height:auto; border-radius:12px; border:1px solid var(--line) }
+.theme b { display:block; margin-top:6px; font-family:var(--mm); font-size:.95rem } .theme span { color:var(--muted); font-size:.85rem; line-height:1.3; display:block }
+.flow { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:14px 0; padding:0; list-style:none; max-width:none }
+.flow li { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:0; font-size:.93rem; min-width:0 }
+.flow li b { display:block; color:var(--accent); font-size:.78rem; letter-spacing:.05em; text-transform:uppercase; margin-bottom:2px }
+.mocks { display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; margin:14px 0 }
+.phone { width:200px; border-radius:18px; background:var(--m-bg); color:var(--m-fg); border:1px solid var(--m-line); padding:12px; font-family:var(--mm); font-size:.8rem; line-height:1.5; display:flex; flex-direction:column; gap:8px; min-width:0 }
+.phone .ttl { text-align:center; color:var(--m-accent); font-weight:700; font-size:.95rem }
+.phone .area { height:150px; border-radius:14px; border:1px solid var(--m-line); background:radial-gradient(circle at 40% 40%, var(--m-surface), var(--m-bg)); display:flex; align-items:center; justify-content:center; color:var(--m-accent); font-size:1.6rem; font-weight:700 }
+.phone .btn { text-align:center; border-radius:10px; padding:8px; font-weight:700; background:var(--m-accent); color:#1a120a }
+.phone .btn2 { text-align:center; border-radius:10px; padding:7px; border:1px solid var(--m-line); color:var(--m-fg) }
+.phone small { color:var(--m-muted); text-align:center; font-size:.72rem }
+.card { width:230px; aspect-ratio:4/5; border-radius:14px; border:1px solid var(--m-line); position:relative; overflow:hidden; color:var(--m-fg); font-family:var(--mm); max-width:100% }
+.card svg { position:absolute; inset:0; width:100%; height:100% }
+.card .t { position:absolute; left:14px; right:14px; top:46%; text-align:center; line-height:1.7 }
+.card .t b { display:block; font-size:1.15rem; color:#fff3dc }
+.card .t i { display:block; font-style:normal; font-size:.78rem; color:var(--m-muted); margin-top:6px }
+.card .f { position:absolute; left:0; right:0; bottom:10px; text-align:center; font-size:.68rem; color:var(--m-muted) }
+.card .h { position:absolute; left:0; right:0; top:12px; text-align:center; font-size:.72rem; color:var(--m-accent) }
+.chips { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 }
+.chip { background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:3px 12px; font-family:var(--mm); font-size:.92rem }
+a { color:var(--accent) }
+</style>
+<main>
+
+<header>
+<h1><span class="mm">စိပ်ပုတီး</span> 1.1 and 1.2 plan</h1>
+<p class="sub">Three things you asked for: a wish card to share after a stage, background themes, and a Save button. This page shows how each would work and what I need you to decide.</p>
+</header>
+
+<section>
+<h2>Order of work</h2>
+<div class="tw"><table>
+<tr><th>Release</th><th>What goes in</th><th>Why this order</th></tr>
+<tr><td><b>1.1.0</b></td><td>Save button · 6 background themes</td><td>Both are small and low risk. The themes are reused as card backgrounds in 1.2.0.</td></tr>
+<tr><td><b>1.2.0</b></td><td>Wish card after each stage, with templates, your own words, and sharing</td><td>Biggest feature. It uses the theme art from 1.1.0, so the card matches the app.</td></tr>
+</table></div>
+<div class="box"><p>Each release is its own Play update. The 12-tester test is not needed again, so an update goes out through production review, which takes a few hours to a few days.</p></div>
+</section>
+
+<section>
+<h2>1 · Save button</h2>
+<p>Progress is saved after every bead already. The button is there so people can see that it is saved.</p>
+<div class="mocks">
+<div class="phone"><div class="ttl">ပိတောက်သား · ၅ / ၈ ပတ်</div><div class="area">၄၇</div><div class="btn">သိမ်းပြီး ထွက်မည်</div><small>အလိုအလျောက်လည်း သိမ်းပါသည်</small></div>
+<div class="phone"><div class="ttl">သိမ်းပြီးပါပြီ ✓</div><div class="area" style="font-size:.95rem;text-align:center;padding:10px">၅ ပတ်နှင့် ၄၇ လုံး<br>သိမ်းထားပါသည်</div><div class="btn2">ပြန်စိပ်မည်</div><div class="btn">ပင်မစာမျက်နှာ</div></div>
+</div>
+<ul>
+<li>The counter screen gets a <b class="mm">သိမ်းပြီး ထွက်မည်</b> button under the counting area. It writes to the phone straight away, shows how many rounds and beads are saved, and goes back to Home.</li>
+<li>The back arrow still works and saves too. The small line under the button says that it also saves by itself.</li>
+<li>Behind the scenes, I switch the save from "write soon" to "write now" at that moment, and also when the app goes to the background. That makes sure nothing is lost if the phone is switched off.</li>
+<li>The free counter and your own ပုတီး use the same button.</li>
+</ul>
+</section>
+
+<section>
+<h2>2 · Themes</h2>
+<p>A theme changes the picture behind the counter and the Home header. The beads, the text and the buttons keep the same look so counting stays easy to read. Pick a theme in <b>Settings → ပုံစံ</b>, next to the bead wood setting.</p>
+<div class="themes">
+<div class="theme"><svg viewBox="0 0 100 130"><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2a4a"/><stop offset=".55" stop-color="#c46a3c"/><stop offset="1" stop-color="#f0b45a"/></linearGradient></defs><rect width="100" height="130" fill="url(#g1)"/><circle cx="50" cy="78" r="16" fill="#f7d28a"/><path d="M50 30 L53 54 L60 56 L58 66 L66 70 L66 92 L34 92 L34 70 L42 66 L40 56 L47 54 Z" fill="#1a1210"/><rect x="0" y="92" width="100" height="38" fill="#1a1210"/></svg><b>စေတီ အာရုဏ်</b><span>Stupa silhouette at sunrise</span></div>
+<div class="theme"><svg viewBox="0 0 100 130"><defs><radialGradient id="g2" cx=".5" cy=".42" r=".7"><stop offset="0" stop-color="#e9b25c"/><stop offset=".5" stop-color="#7a4a22"/><stop offset="1" stop-color="#1a1210"/></radialGradient></defs><rect width="100" height="130" fill="url(#g2)"/><circle cx="50" cy="52" r="9" fill="#120c08"/><path d="M50 62 C36 62 26 80 22 100 L78 100 C74 80 64 62 50 62 Z" fill="#120c08"/><ellipse cx="50" cy="102" rx="34" ry="7" fill="#120c08"/></svg><b>ဘုရားရှင်</b><span>Seated Buddha, lamp glow</span></div>
+<div class="theme"><svg viewBox="0 0 100 130"><defs><linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d3f5a"/><stop offset=".6" stop-color="#6b5a7a"/><stop offset="1" stop-color="#d98b6a"/></linearGradient></defs><rect width="100" height="130" fill="url(#g3)"/><rect y="84" width="100" height="46" fill="#1d2c36"/><ellipse cx="30" cy="100" rx="13" ry="5" fill="#f3b9c8"/><ellipse cx="64" cy="110" rx="15" ry="5" fill="#f7d1da"/><ellipse cx="50" cy="94" rx="10" ry="4" fill="#f3b9c8"/></svg><b>ကြာကန်</b><span>Lotus pond at dusk</span></div>
+<div class="theme"><svg viewBox="0 0 100 130"><defs><linearGradient id="g4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5a66"/><stop offset="1" stop-color="#b8c0b6"/></linearGradient></defs><rect width="100" height="130" fill="url(#g4)"/><path d="M0 90 L26 52 L48 80 L70 40 L100 84 L100 130 L0 130 Z" fill="#46564f"/><path d="M0 108 L30 84 L56 104 L100 78 L100 130 L0 130 Z" fill="#2f3d38"/><path d="M60 82 L72 74 L84 82 Z" fill="#8a4a2a"/><rect x="63" y="82" width="18" height="9" fill="#e6d6b0"/></svg><b>တောင်ပေါ် ကျောင်း</b><span>Monastery roof in morning mist</span></div>
+<div class="theme"><svg viewBox="0 0 100 130"><rect width="100" height="130" fill="#0f1a2b"/><circle cx="20" cy="20" r="1" fill="#fff"/><circle cx="76" cy="14" r="1.2" fill="#fff"/><circle cx="88" cy="40" r="1" fill="#fff"/><circle cx="12" cy="52" r="1" fill="#fff"/><circle cx="62" cy="30" r="1" fill="#fff"/><rect x="47" y="70" width="6" height="40" fill="#1a1210"/><circle cx="50" cy="58" r="24" fill="#1c2b22"/><circle cx="38" cy="66" r="14" fill="#1c2b22"/><circle cx="64" cy="66" r="14" fill="#1c2b22"/><rect y="108" width="100" height="22" fill="#0a0f18"/></svg><b>ဗောဓိပင်</b><span>Bodhi tree under the stars</span></div>
+<div class="theme"><svg viewBox="0 0 100 130"><defs><radialGradient id="g6" cx=".5" cy=".3" r=".8"><stop offset="0" stop-color="#3a4a66"/><stop offset="1" stop-color="#0c1220"/></radialGradient></defs><rect width="100" height="130" fill="url(#g6)"/><circle cx="50" cy="40" r="20" fill="#f1ead0"/><path d="M0 104 L30 92 L60 104 L100 90 L100 130 L0 130 Z" fill="#0a0f18"/><path d="M46 92 L50 70 L54 92 Z" fill="#0a0f18"/></svg><b>လပြည့်ညဉ့်</b><span>Full moon over a quiet pagoda</span></div>
+</div>
+<p class="sub">Names and pictures are proposals. The current brown teak look stays as the first choice, called <span class="mm">မူလ</span>.</p>
+
+<h3>Where the pictures come from</h3>
+<p>This is the biggest choice in the plan. Three ways:</p>
+<div class="tw"><table>
+<tr><th>Way</th><th>Good</th><th>Watch out</th></tr>
+<tr><td><b>A. Drawn by the app's own code</b> <span class="tag">Recommended</span></td><td>As above: gradients and silhouettes. Tiny (almost no size added), sharp on every screen, no copyright question, and no AI label needed in Play.</td><td>Stylised, not a real photograph. It will not look like a famous pagoda photo.</td></tr>
+<tr><td><b>B. Real photos you supply</b></td><td>Real places that mean something to you.</td><td>Only photos you took, or ones whose licence allows apps. Each adds about 150 to 300 KB. Photos of famous buildings taken by others are not free to use.</td></tr>
+<tr><td><b>C. AI-generated pictures</b></td><td>Fast and varied.</td><td>Play's AI declaration then has to be answered "labelled". Quality of Buddha images needs care, because a wrong-looking image can offend.</td></tr>
+</table></div>
+<div class="box"><p><b>Suggestion:</b> start with way A for 1.1.0. Later, add <b>your own photo as background</b> from the gallery (no storage permission is needed). That gives every user their own favourite pagoda without the app carrying copyrighted pictures.</p></div>
+
+<h3>Rules for every theme</h3>
+<ul>
+<li>A darkened layer sits behind the counting area so beads and numbers stay easy to read.</li>
+<li>The pictures are still. Nothing moves while you count.</li>
+<li>Respect for the Buddha image: the seated Buddha is a calm silhouette, shown above the beads, and never behind a button or text.</li>
+</ul>
+</section>
+
+<section>
+<h2>3 · Wish card to share</h2>
+<p>When a stage is finished, the "သာဓု" screen offers a card to wish someone well. The user picks words, adds a name, picks a theme, and shares a picture.</p>
+<ol class="flow">
+<li><b>1 · Stage done</b>"သာဓု" screen gets a new button: <span class="mm">ဆုတောင်းကတ် ပို့မည်</span></li>
+<li><b>2 · Words</b>Pick a ready-made wish, or type your own</li>
+<li><b>3 · For whom</b>Optional name, for example <span class="mm">အမေ</span></li>
+<li><b>4 · Look</b>Pick a theme. The card previews live</li>
+<li><b>5 · Share</b>Phone's share menu (Facebook, Viber, Messenger…) or save to gallery</li>
+</ol>
+
+<div class="mocks">
+<div class="card"><svg viewBox="0 0 230 288"><defs><linearGradient id="c1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2a4a"/><stop offset=".6" stop-color="#c46a3c"/><stop offset="1" stop-color="#f0b45a"/></linearGradient></defs><rect width="230" height="288" fill="url(#c1)"/><circle cx="115" cy="205" r="34" fill="#f7d28a"/><path d="M115 128 L120 160 L136 164 L132 182 L150 188 L150 228 L80 228 L80 188 L98 182 L94 164 L110 160 Z" fill="#1a1210"/><rect y="228" width="230" height="60" fill="#1a1210"/><rect y="0" width="230" height="288" fill="#000" opacity=".28"/></svg><div class="h">ကိုးနဝင်း · အဆင့် ၃ ပြီးပါပြီ</div><div class="t"><b>အမေ ကျန်းမာချမ်းသာပါစေ</b><i>သာဓု သာဓု သာဓု</i></div><div class="f">စိပ်ပုတီး · Google Play</div></div>
+<div class="card" style="background:#16110c"><svg viewBox="0 0 230 288"><defs><radialGradient id="c2" cx=".5" cy=".4" r=".8"><stop offset="0" stop-color="#e9b25c"/><stop offset=".55" stop-color="#7a4a22"/><stop offset="1" stop-color="#1a1210"/></radialGradient></defs><rect width="230" height="288" fill="url(#c2)"/><circle cx="115" cy="215" r="20" fill="#120c08"/><path d="M115 238 C84 238 62 270 54 288 L176 288 C168 270 146 238 115 238 Z" fill="#120c08"/><rect width="230" height="288" fill="#000" opacity=".3"/></svg><div class="h">ကိုးနဝင်း · အဆင့် ၃ ပြီးပါပြီ</div><div class="t" style="top:30%"><b>ဤကုသိုလ်ကို အမျှဝေပါသည်</b><i>သာဓု သာဓု သာဓု</i></div><div class="f">စိပ်ပုတီး · Google Play</div></div>
+</div>
+<p class="sub">Two sample cards with two themes. The card is a 4:5 picture, good for Facebook and Viber. A tall 9:16 version for stories can follow.</p>
+
+<h3>Ready-made wishes (draft wording)</h3>
+<p>I wrote these as a start. Please check or change every one, since they are religious words and the wording matters.</p>
+<div class="chips">
+<span class="chip">ကျန်းမာချမ်းသာပါစေ</span>
+<span class="chip">သဗ္ဗေ သတ္တာ အဝေရာ ဟောန္တု</span>
+<span class="chip">ဤကုသိုလ်ကို အမျှဝေပါသည်</span>
+<span class="chip">အန္တရာယ်ကင်း ငြိမ်းချမ်းပါစေ</span>
+<span class="chip">လုပ်ငန်း အောင်မြင်ပါစေ</span>
+<span class="chip">စာမေးပွဲ အောင်မြင်ပါစေ</span>
+</div>
+<p>If the user already wrote a wish at the start of that stage, it appears first in the list, so they can reuse it.</p>
+
+<h3>How it works</h3>
+<ul>
+<li>The card is drawn in the app and sent as a <b>picture</b>. Pictures show the Myanmar text correctly for everyone. Plain text can turn into garbage on phones that still use Zawgyi.</li>
+<li>Sharing uses the phone's own share menu. The app needs <b>no new permissions</b> and no internet.</li>
+<li>Saving to the gallery works on Android 10 and later without any permission. On older phones only Share is shown.</li>
+<li>The wish and name stay on the phone. Nothing is uploaded, so the Play Data safety answer stays "no data collected".</li>
+<li>The footer shows the app name and Play Store link, so people who see the card can find the app. You can turn this off if you prefer.</li>
+<li>To make the text look the same on every phone, I would include the Padauk font (free licence) for the card, about 0.5 to 1 MB.</li>
+</ul>
+</section>
+
+<section>
+<h2>Release steps for each version</h2>
+<ol>
+<li>I build and test it (automatic tests plus screenshots of every new screen).</li>
+<li>You install the test build on your Redmi and Mi Pad and try it.</li>
+<li>I build the signed bundle (<code>1.1.0</code> with build number 12, then <code>1.2.0</code> with 13).</li>
+<li>You upload it to <b>Production → Create new release</b> and add the Myanmar release notes I write.</li>
+</ol>
+<div class="box"><p><b>Needed from you:</b> the upload key zip (<code>satepadee-upload-key.zip</code>) I sent you earlier. My workspace was reset, so I no longer have it. Without it I can build and test everything, but not the signed Play bundle.</p></div>
+</section>
+
+<section>
+<h2>What I need you to decide</h2>
+<ol>
+<li><b>Theme pictures:</b> way A (drawn by the app), B (your photos), or C (AI), for 1.1.0? I suggest A, then "your own photo" later.</li>
+<li><b>Theme list:</b> keep these six and the names, or change any?</li>
+<li><b>Wish wording:</b> approve or edit the six ready-made wishes above. Add any others you want.</li>
+<li><b>Card footer:</b> show the app name and Play link on every card?</li>
+<li><b>Save button wording:</b> is <span class="mm">သိမ်းပြီး ထွက်မည်</span> clear, or would you like another phrase?</li>
+</ol>
+</section>
+
+<section>
+<h2>What I cannot check from here</h2>
+<ul>
+<li>The share menu and saving to the gallery. I can test the card picture and the screens, but only your phone can show the real share menu. I will ask you to try it before release.</li>
+<li>How the Buddha and pagoda pictures feel to you and to other Buddhists. Please look at the first screenshots and tell me honestly if anything seems disrespectful or wrong.</li>
+</ul>
+</section>
+
+</main>
