@@ -1,0 +1,172 @@
+<title>Wish Card Rewards</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Fraunces:opsz,wght@9..144,600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column. Order of sections follows the order of work: save button, themes, wish cards, releases, decisions. */
+:root {
+  --bg:#f6efe4; --panel:#fffaf2; --fg:#2a1d12; --muted:#7a6550; --line:#e3d4bf; --accent:#a8661c; --soft:#f1e0c4; --ok:#2f7a4c;
+  --display:"Fraunces", Georgia, serif; --body:"Source Sans 3","Padauk",system-ui,sans-serif; --mm:"Padauk","Myanmar Text",system-ui,sans-serif;
+  /* The app itself is always dark, so the illustrations keep their own fixed colours in both page themes */
+  --m-bg:#16110c; --m-surface:#211912; --m-fg:#f2e5d1; --m-muted:#b29c80; --m-accent:#eba443; --m-line:#3b2e22;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#16110c; --panel:#211912; --fg:#f2e5d1; --muted:#b29c80; --line:#3b2e22; --accent:#eba443; --soft:#3a2a17; --ok:#6cc08b; color-scheme:dark } }
+:root[data-theme="dark"] { --bg:#16110c; --panel:#211912; --fg:#f2e5d1; --muted:#b29c80; --line:#3b2e22; --accent:#eba443; --soft:#3a2a17; --ok:#6cc08b; color-scheme:dark }
+body { background:var(--bg); color:var(--fg); font:16px/1.6 var(--body); padding:32px 16px 72px }
+main { max-width:780px; margin:0 auto; display:flex; flex-direction:column; gap:44px }
+h1 { font:600 2.3rem/1.15 var(--display); margin:0; text-wrap:balance }
+h2 { font:600 1.45rem/1.3 var(--display); margin:0 0 10px; text-wrap:balance }
+h3 { font:600 1.05rem/1.3 var(--body); margin:18px 0 6px }
+p { margin:6px 0; max-width:68ch } ul, ol { margin:6px 0; padding-left:1.3em; max-width:68ch } li { margin:4px 0 }
+.sub { color:var(--muted) } .mm { font-family:var(--mm) }
+code { background:var(--soft); padding:1px 5px; border-radius:4px; font-size:.9em }
+.tag { display:inline-block; font-size:.78rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase; background:var(--soft); color:var(--accent); border-radius:5px; padding:1px 8px; margin-right:6px }
+.box { background:var(--soft); border-radius:10px; padding:14px 16px }
+.box p { margin:0 }
+.tw { overflow-x:auto }
+table { border-collapse:collapse; width:100%; font-size:.95rem; min-width:520px }
+th, td { text-align:left; border-top:1px solid var(--line); padding:8px 12px 8px 0; vertical-align:top }
+th { font-size:.8rem; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); border-top:0 }
+.themes { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; margin:14px 0 }
+.theme { min-width:0 } .theme svg { display:block; width:100%; height:auto; border-radius:12px; border:1px solid var(--line) }
+.theme b { display:block; margin-top:6px; font-family:var(--mm); font-size:.95rem } .theme span { color:var(--muted); font-size:.85rem; line-height:1.3; display:block }
+.flow { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:14px 0; padding:0; list-style:none; max-width:none }
+.flow li { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:0; font-size:.93rem; min-width:0 }
+.flow li b { display:block; color:var(--accent); font-size:.78rem; letter-spacing:.05em; text-transform:uppercase; margin-bottom:2px }
+.mocks { display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; margin:14px 0 }
+.phone { width:200px; border-radius:18px; background:var(--m-bg); color:var(--m-fg); border:1px solid var(--m-line); padding:12px; font-family:var(--mm); font-size:.8rem; line-height:1.5; display:flex; flex-direction:column; gap:8px; min-width:0 }
+.phone .ttl { text-align:center; color:var(--m-accent); font-weight:700; font-size:.95rem }
+.phone .area { height:150px; border-radius:14px; border:1px solid var(--m-line); background:radial-gradient(circle at 40% 40%, var(--m-surface), var(--m-bg)); display:flex; align-items:center; justify-content:center; color:var(--m-accent); font-size:1.6rem; font-weight:700 }
+.phone .btn { text-align:center; border-radius:10px; padding:8px; font-weight:700; background:var(--m-accent); color:#1a120a }
+.phone .btn2 { text-align:center; border-radius:10px; padding:7px; border:1px solid var(--m-line); color:var(--m-fg) }
+.phone small { color:var(--m-muted); text-align:center; font-size:.72rem }
+.card { width:230px; aspect-ratio:4/5; border-radius:14px; border:1px solid var(--m-line); position:relative; overflow:hidden; color:var(--m-fg); font-family:var(--mm); max-width:100% }
+.card svg { position:absolute; inset:0; width:100%; height:100% }
+.card .t { position:absolute; left:14px; right:14px; top:46%; text-align:center; line-height:1.7 }
+.card .t b { display:block; font-size:1.15rem; color:#fff3dc }
+.card .t i { display:block; font-style:normal; font-size:.78rem; color:var(--m-muted); margin-top:6px }
+.card .f { position:absolute; left:0; right:0; bottom:10px; text-align:center; font-size:.68rem; color:var(--m-muted) }
+.card .h { position:absolute; left:0; right:0; top:12px; text-align:center; font-size:.72rem; color:var(--m-accent) }
+.chips { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 }
+.chip { background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:3px 12px; font-family:var(--mm); font-size:.92rem }
+a { color:var(--accent) }
+
+.slots { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; max-width:330px; margin:12px 0 }
+.slot { aspect-ratio:4/5; border-radius:10px; border:1px solid var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-family:var(--mm); font-size:.75rem; text-align:center; padding:4px; min-width:0 }
+.slot.got { background:linear-gradient(180deg,#3a2a4a,#c46a3c 60%,#1a1210); color:#fff3dc; border-color:var(--accent) }
+.slot.new { border:2px dashed var(--accent); color:var(--accent); font-weight:700 }
+.slot.lock { color:var(--muted); background:var(--panel) }
+.choice { display:flex; gap:6px } .choice div { flex:1; text-align:center; border-radius:9px; padding:6px; border:1px solid var(--m-line) }
+.choice .on { background:var(--m-accent); color:#1a120a; font-weight:700; border-color:var(--m-accent) }
+.dlg { border:1px solid var(--m-line); background:var(--m-surface); border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:6px }
+</style>
+<main>
+<header>
+<h1>Wish cards as a reward</h1>
+<p class="sub">Plan for changing the wish card in 1.1.0. 1.1.0 is not on Play yet, so we can replace the current editor before anyone uses it.</p>
+</header>
+
+<section>
+<h2>The idea in one line</h2>
+<div class="box"><p>Each finished ကိုးနဝင်း stage earns <b>one</b> wish card. You make the wish once, for yourself or for someone. After you make it, it is <b>sealed</b>: it can't be edited, only looked at and shared.</p></div>
+</section>
+
+<section>
+<h2>1 · Earning the card</h2>
+<ul>
+<li>Finishing a stage earns one card for that stage. The full 81 days give 9 cards. If you start ကိုးနဝင်း again, you can earn 9 more.</li>
+<li>The "သာဓု" screen shows <b class="mm">ဆုတောင်းကတ် ရပါပြီ</b> with a button to make the wish now.</li>
+<li>If you close it without making the wish, the card waits for you. Home shows a small banner, <span class="mm">ဆုတောင်းကတ် ၁ ခု ရှိပါသည် ›</span>, until you use it. It never expires.</li>
+<li>Free counting and your own ပုတီး don't earn cards. Only ကိုးနဝင်း stages do, so the card stays special.</li>
+</ul>
+</section>
+
+<section>
+<h2>2 · Making the wish (once)</h2>
+<div class="mocks">
+<div class="phone">
+<div class="ttl">ဒုတိယ အဆင့် ဆုတောင်းကတ်</div>
+<small style="text-align:left">ဘယ်သူ့အတွက် ဆုတောင်းမလဲ</small>
+<div class="choice"><div>ကိုယ်တိုင်</div><div class="on">တစ်ယောက်ယောက်</div></div>
+<div class="btn2" style="text-align:left">အမေ</div>
+<small style="text-align:left">အမေ · အဖေ · မိဘ · ချစ်သူ</small>
+<div class="btn2" style="text-align:left">ကျန်းမာချမ်းသာပါစေ</div>
+<div class="btn">ဆုတောင်းမည်</div>
+</div>
+<div class="phone">
+<div class="area" style="height:auto;padding:10px;font-size:.85rem;flex-direction:column;gap:6px;color:var(--m-fg)">
+<div class="dlg"><b style="color:var(--m-accent)">ဆုတောင်းမလား</b><span>ဆုတောင်းပြီးပါက ပြင်၍ မရတော့ပါ။</span><div class="btn">ဆုတောင်းမည်</div><div class="btn2">ပြန်ပြင်မည်</div></div>
+</div>
+<small>Confirm before sealing</small>
+</div>
+</div>
+<ol>
+<li><b>For whom:</b> <span class="mm">ကိုယ်တိုင်</span> (myself) or <span class="mm">တစ်ယောက်ယောက်</span> (someone). For someone there is a name box with quick choices: <span class="mm">အမေ, အဖေ, မိဘ, ချစ်သူ</span>, or type any name.</li>
+<li><b>Words:</b> pick a ready-made wish or write your own, as now. The wish you wrote at the start of that stage is offered first.</li>
+<li><b>Picture:</b> pick a background.</li>
+<li><b>Seal:</b> tap <span class="mm">ဆုတောင်းမည်</span>. A confirm box says it can't be changed afterwards. After confirming, the card is saved with its date and becomes read-only.</li>
+</ol>
+</section>
+
+<section>
+<h2>3 · After sealing</h2>
+<ul>
+<li>The card shows a small mark, <span class="mm">ဆုတောင်းပြီး · ၂၀၂၆ အောက်တိုဘာ ၂၈</span>, so it is clear it was made once on that day.</li>
+<li>Only two buttons: <span class="mm">မျှဝေမည်</span> (share to Facebook, Viber, Messenger…) and <span class="mm">ဓာတ်ပုံ သိမ်းမည်</span> (save to Photos).</li>
+<li>No edit button. The words, name and picture stay as they were made.</li>
+</ul>
+</section>
+
+<section>
+<h2>4 · Your collection</h2>
+<p>A new section at the bottom of the <b class="mm">ဇယား</b> tab: <span class="mm">ကျွန်ုပ်၏ ဆုတောင်းကတ်များ</span>. It shows nine places, one per stage:</p>
+<div class="slots">
+<div class="slot got">ပထမ<br>အမေ</div>
+<div class="slot got">ဒုတိယ<br>ကိုယ်တိုင်</div>
+<div class="slot new">တတိယ<br>ဆုတောင်းရန်</div>
+<div class="slot lock">စတုတ္ထ<br>🔒</div>
+<div class="slot lock">ပဉ္စမ<br>🔒</div>
+<div class="slot lock">ဆဋ္ဌမ<br>🔒</div>
+<div class="slot lock">သတ္တမ<br>🔒</div>
+<div class="slot lock">အဋ္ဌမ<br>🔒</div>
+<div class="slot lock">နဝမ<br>🔒</div>
+</div>
+<ul>
+<li><b>Made:</b> a small picture of the card. Tap it to view and share again.</li>
+<li><b>Earned but not made yet:</b> a dashed box, "ဆုတောင်းရန်". Tap it to make the wish.</li>
+<li><b>Not reached yet:</b> locked. It shows what's still ahead and gives a reason to keep going.</li>
+<li>Cards from an earlier round of ကိုးနဝင်း stay in the collection, grouped by start date.</li>
+</ul>
+</section>
+
+<section>
+<h2>How it's stored</h2>
+<ul>
+<li>Each sealed card is saved on the phone with: stage, which round of ကိုးနဝင်း, for whom (myself, or the name), the words, the picture and the date.</li>
+<li>The card is drawn again from that saved data whenever you open or share it, so it always looks the same.</li>
+<li>Still no internet, no account and no new permissions. Uninstalling the app removes the cards, as with all progress.</li>
+</ul>
+</section>
+
+<section>
+<h2>What I need you to decide</h2>
+<ol>
+<li><b>Sharing:</b> share a sealed card <b>as many times as you like</b> (my suggestion, so you can send it to several people and apps), or <b>only once</b>?</li>
+<li><b>Card for yourself:</b> show <span class="mm">ကိုယ်တိုင်အတွက်</span> on the card, or no name line at all?</li>
+<li><b>Name chips:</b> are <span class="mm">အမေ, အဖေ, မိဘ, ချစ်သူ</span> right? Add or change any (for example <span class="mm">ဆရာ, သားသမီး, မိသားစု</span>).</li>
+<li><b>Two wishes per stage:</b> the app already asks for a wish at the <i>start</i> of each stage. Keep both (start wish is private, card wish is shared), or drop the start wish and use only the card?</li>
+<li><b>Ready-made wishes:</b> separate lists for myself and for someone, for example <span class="mm">ကျန်းမာချမ်းသာပါစေ</span> for both and <span class="mm">ဤကုသိုလ်ကို အမျှဝေပါသည်</span> only for someone? Please send the wording.</li>
+<li><b>The 81-day finish:</b> make the 9th card look extra special, for example with a gold border and "ကိုးနဝင်း ပြည့်စုံ"?</li>
+</ol>
+</section>
+
+<section>
+<h2>Work, once you decide</h2>
+<ol>
+<li>Save sealed cards and earned rewards on the phone, with tests.</li>
+<li>Rework the card screen into "make" (once) and "view and share" (sealed).</li>
+<li>Add the Home banner for a card waiting to be made.</li>
+<li>Add the collection to the ဇယား tab.</li>
+<li>Screenshots of every new screen for you to check, then a test APK.</li>
+</ol>
+<p class="sub">It all stays in 1.1.0, together with the themes and the Save button.</p>
+</section>
+</main>
