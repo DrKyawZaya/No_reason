@@ -76,7 +76,8 @@ object WishCard {
         val picture = Backgrounds.find(spec.backgroundId)
         if (picture != null) {
             // The pictures are 9:16 with the pagoda or statue near the top; keep the top part.
-            val src = picture(context, picture.image, if (w < WIDTH / 2) 2 else 1)
+            // Half-size pictures are enough for the on-screen preview and thumbnails; the shared card uses full size.
+            val src = picture(context, picture.image, if (w <= WIDTH / 2) 2 else 1)
             val cropH = (src.width * h / w.toFloat()).toInt().coerceAtMost(src.height)
             c.drawBitmap(src, Rect(0, 0, src.width, cropH), Rect(0, 0, w, h), Paint(Paint.FILTER_BITMAP_FLAG))
         } else {
@@ -153,6 +154,7 @@ object WishCard {
 
     // Decoding a background takes tens of milliseconds, too slow to repeat for every letter typed.
     // Two full-size pictures plus the small ones fit in 16 MB.
+    // Never recycle() a bitmap from this cache: it is shared, and cards are drawn on more than one thread.
     private val pictures = object : LruCache<String, Bitmap>(16 * 1024 * 1024) {
         override fun sizeOf(key: String, value: Bitmap) = value.byteCount
     }

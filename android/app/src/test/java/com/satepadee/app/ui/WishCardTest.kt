@@ -6,7 +6,9 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -190,7 +192,18 @@ class WishCardTest {
         rule.onRoot().captureRoboImage("build/screenshots/11-wish-landscape.png")
     }
 
-    @Test fun typingKeepsTheTextAndThePreviewCatchesUp() {
+    @Test fun previewRedrawsAfterTyping() {
+        val m = model()
+        rule.setContent { SatePaDeeTheme { WishCardScreen(m, 42, 1) {} } }
+        val before = rule.onNodeWithTag("cardPreview").captureToImage().asAndroidBitmap()
+        rule.onAllNodes(hasSetTextAction())[0].performTextInput("ညီမ")
+        // The name line appears on the card once typing pauses.
+        rule.waitUntil(timeoutMillis = 5_000) {
+            !rule.onNodeWithTag("cardPreview").captureToImage().asAndroidBitmap().sameAs(before)
+        }
+    }
+
+    @Test fun typingKeepsTheTextAndDoesNotSealEarly() {
         val m = model()
         rule.setContent { SatePaDeeTheme { WishCardScreen(m, 42, 1) {} } }
         rule.onAllNodes(hasSetTextAction())[0].performTextInput("ညီမ")

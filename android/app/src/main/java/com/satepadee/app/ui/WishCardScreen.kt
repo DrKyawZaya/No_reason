@@ -226,12 +226,12 @@ private fun rememberPreview(spec: CardSpec): Bitmap {
     return card
 }
 
-/** [size] gives one side (fillMaxWidth or fillMaxHeight); the other follows the card's 4:5 shape. */
+/** [modifier] gives one side (fillMaxWidth or fillMaxHeight); the other follows the card's 4:5 shape. */
 @Composable
-private fun CardPreview(bitmap: Bitmap, size: Modifier) {
+private fun CardPreview(bitmap: Bitmap, modifier: Modifier) {
     Image(
         bitmap.asImageBitmap(), contentDescription = "ဆုတောင်းကတ်",
-        modifier = size.aspectRatio(WishCard.WIDTH / WishCard.HEIGHT.toFloat(), matchHeightConstraintsFirst = true)
+        modifier = modifier.aspectRatio(WishCard.WIDTH / WishCard.HEIGHT.toFloat(), matchHeightConstraintsFirst = true)
             .clip(RoundedCornerShape(16.dp)).border(1.dp, Palette.line, RoundedCornerShape(16.dp)).testTag("cardPreview"),
     )
 }
