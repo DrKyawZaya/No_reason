@@ -12,6 +12,10 @@ account under the media IDs below. Export full size before building the theme pi
 | 4 | Monastery in morning mist | MAHZRR2khOs | https://www.canva.com/M/MAHZRR2khOs |
 | 5 | Bodhi tree under stars | MAHZRTNlr0I | https://www.canva.com/M/MAHZRTNlr0I |
 | 6 | Full moon over a pagoda | MAHZRTJN57w | https://www.canva.com/M/MAHZRTJN57w |
+| 7 | Shwedagon Pagoda at dusk | MAHZRRtCS-w | https://www.canva.com/M/MAHZRRtCS-w |
+| 8 | Kyaiktiyo Golden Rock at sunrise | MAHZRQKcBOs | https://www.canva.com/M/MAHZRQKcBOs |
+| 9 | Bagan temples at sunrise | MAHZRXgnzLM | https://www.canva.com/M/MAHZRXgnzLM |
+| 10 | Golden seated Buddha statue | MAHZRfK1MxE | https://www.canva.com/M/MAHZRfK1MxE |
 
 Status: waiting for the user to approve or redo each picture. Play's AI-asset declaration
 may apply to store screenshots that show them.
