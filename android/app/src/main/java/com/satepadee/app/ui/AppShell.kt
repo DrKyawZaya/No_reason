@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -98,7 +99,7 @@ private fun Shell(model: AppModel, openTarget: String?, onOpened: () -> Unit) {
     page?.takeIf { it.startsWith("edit:") }?.let { p -> RecitationForm(model, editId = p.removePrefix("edit:")) { page = null }; return }
     BackHandler(enabled = tab != Tab.Home) { tab = Tab.Home }
 
-    Column(Modifier.fillMaxSize().pageBackground().statusBarsPadding()) {
+    Column(Modifier.fillMaxSize().pageBackground().statusBarsPadding().displayCutoutPadding()) {
         Box(Modifier.weight(1f)) {
             when (tab) {
                 Tab.Home -> HomeScreen(

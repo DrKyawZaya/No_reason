@@ -1,0 +1,11 @@
+<resources>
+    <!-- Android 11+: also use the area beside a camera cut-out; screens pad themselves with safe-drawing insets. -->
+    <style name="Theme.SatePaDee" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">always</item>
+    </style>
+</resources>

@@ -1,0 +1,10 @@
+<resources>
+    <!-- Android 10+: no grey veil over the transparent navigation bar; the app's own background shows. -->
+    <style name="Theme.SatePaDee" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+    </style>
+</resources>

@@ -1,8 +1,9 @@
 <resources>
+    <!-- Edge to edge: transparent bars, the app draws its dark background behind them (see MainActivity). -->
     <style name="Theme.SatePaDee" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/bg</item>
-        <item name="android:statusBarColor">@color/bg</item>
-        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
     <color name="bg">#FF16110C</color>
 </resources>
