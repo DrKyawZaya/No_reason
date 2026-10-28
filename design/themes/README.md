@@ -17,5 +17,6 @@ account under the media IDs below. Export full size before building the theme pi
 | 9 | Bagan temples at sunrise | MAHZRXgnzLM | https://www.canva.com/M/MAHZRXgnzLM |
 | 10 | Golden seated Buddha statue | MAHZRfK1MxE | https://www.canva.com/M/MAHZRfK1MxE |
 
-Status: waiting for the user to approve or redo each picture. Play's AI-asset declaration
-may apply to store screenshots that show them.
+Status: the user chose to keep all ten. Next: get the full-size PNGs from Canva (the
+user downloads them), shrink each to about 150-250 KB WebP, and add them to the app.
+Play's AI-asset declaration may apply to store screenshots that show them.
