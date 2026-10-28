@@ -40,6 +40,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStop() {
+        super.onStop()
+        model.saveNow()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         intent.getStringExtra(EXTRA_TARGET)?.let { openTarget = it }

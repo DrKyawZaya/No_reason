@@ -49,6 +49,8 @@ data class AppState(
     /** Signal at the end of each round (every 108 beads, or the ပုတီး's own count). */
     val roundVibration: RoundVibration = RoundVibration.Long,
     val roundSound: RoundSound = RoundSound.Off,
+    /** Background picture id (see ui/Backgrounds.kt); null is the original plain teak look. */
+    val themeId: String? = null,
 )
 
 enum class CountMode { Tap, Swipe }
@@ -191,6 +193,10 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
     fun setRoundSignal(vibration: RoundVibration = state.roundVibration, sound: RoundSound = state.roundSound) =
         update(state.copy(roundVibration = vibration, roundSound = sound))
     fun setWood(id: String) = update(state.copy(woodId = id))
+    fun setTheme(id: String?) = update(state.copy(themeId = id))
+
+    /** Write everything to storage now (the Save button, and when the app goes to the background). */
+    fun saveNow() = save(state, sync = true)
     fun setBirthDay(id: String) {
         val woodId = content.woods.firstOrNull { it.day == id }?.id ?: state.woodId
         update(state.copy(birthDay = id, woodId = woodId))
@@ -270,9 +276,10 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
         setupDone = prefs.getBoolean(K_SETUP, false),
         roundVibration = runCatching { RoundVibration.valueOf(prefs.getString(K_RVIB, null)!!) }.getOrDefault(RoundVibration.Long),
         roundSound = runCatching { RoundSound.valueOf(prefs.getString(K_RSOUND, null)!!) }.getOrDefault(RoundSound.Off),
+        themeId = prefs.getString(K_THEME, null),
     )
 
-    private fun save(s: AppState) {
+    private fun save(s: AppState, sync: Boolean = false) {
         prefs.edit().apply {
             if (s.start == null) remove(K_START) else putLong(K_START, s.start)
             putString(K_DONE, s.done.sorted().joinToString(","))
@@ -298,7 +305,8 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
             putBoolean(K_SETUP, s.setupDone)
             putString(K_RVIB, s.roundVibration.name)
             putString(K_RSOUND, s.roundSound.name)
-        }.apply()
+            if (s.themeId == null) remove(K_THEME) else putString(K_THEME, s.themeId)
+        }.let { if (sync) it.commit() else it.apply() }
     }
 
     private companion object {
@@ -308,6 +316,6 @@ class AppModel(private val prefs: SharedPreferences, val content: Content) {
         const val K_FBEADS = "freeBeads"; const val K_FROUNDS = "freeRounds"; const val K_RECITATIONS = "recitations"
         const val K_HISTORY = "history"; const val K_REM_ON = "reminderOn"; const val K_REM_MIN = "reminderMinutes"
         const val K_REM_VEG = "vegetarianReminder"; const val K_SETUP = "setupDone"
-        const val K_RVIB = "roundVibration"; const val K_RSOUND = "roundSound"
+        const val K_RVIB = "roundVibration"; const val K_RSOUND = "roundSound"; const val K_THEME = "theme"
     }
 }

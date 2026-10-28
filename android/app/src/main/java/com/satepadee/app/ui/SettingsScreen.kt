@@ -39,7 +39,7 @@ import com.satepadee.app.data.RoundVibration
 import com.satepadee.app.data.isXiaomiFamily
 import com.satepadee.app.data.openReminderHelpSettings
 
-/** Settings: bead, counting mode, end-of-round signal, reminder, and the ကိုးနဝင်း reference page. */
+/** Settings: bead, background picture, counting mode, end-of-round signal, reminder, and the ကိုးနဝင်း reference page. */
 @Composable
 fun SettingsScreen(model: AppModel, onAbout: () -> Unit, onBack: () -> Unit) {
     BackHandler(onBack = onBack)
@@ -72,6 +72,11 @@ fun SettingsScreen(model: AppModel, onAbout: () -> Unit, onBack: () -> Unit) {
                     }
                     Text("ပြောင်းမည် ›", style = Type.small.copy(color = Palette.accent))
                 }
+            }
+
+            Card {
+                Text("နောက်ခံပုံ", style = Type.heading)
+                BackgroundPicker(s.themeId) { model.setTheme(it) }
             }
 
             Card {

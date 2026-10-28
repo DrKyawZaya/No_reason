@@ -8,3 +8,4 @@ local.properties
 .kotlin/
 keystore.properties
 *.jks
+build.log

@@ -42,4 +42,17 @@ class RoundSignalTest {
         }
         assertEquals(0, Chime.samples(RoundSound.Off).size)
     }
+
+    @Test fun backgroundChoiceIsSavedAndOriginalIsNull() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val prefs = context.getSharedPreferences("theme", Context.MODE_PRIVATE)
+        prefs.edit().clear().commit()
+        val m = AppModel(prefs, Content.load(context))
+        assertEquals(null, m.state.themeId)
+        m.setTheme("bagan")
+        m.saveNow()
+        assertEquals("bagan", AppModel(prefs, Content.load(context)).state.themeId)
+        m.setTheme(null)
+        assertEquals(null, AppModel(prefs, Content.load(context)).state.themeId)
+    }
 }

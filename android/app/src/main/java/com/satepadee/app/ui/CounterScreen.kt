@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import android.widget.Toast
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -93,8 +95,11 @@ fun CounterScreen(
         }
     }
 
+    val theme = Backgrounds.find(model.state.themeId)
+    Box(Modifier.fillMaxSize().background(Palette.bg)) {
+    if (theme != null) BackgroundLayer(theme)
     Column(
-        Modifier.fillMaxSize().background(Palette.bg).safeDrawingPadding().padding(16.dp).readableWidth(),
+        Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp).readableWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -136,7 +141,7 @@ fun CounterScreen(
         // Counting area: the whole box is the target for taps or swipes.
         Row(
             Modifier.weight(1f).fillMaxWidth().testTag("countArea").clip(RoundedCornerShape(24.dp))
-                .background(Brush.radialGradient(listOf(Palette.surface, Palette.bg)))
+                .background(Brush.radialGradient(listOf(Palette.surface.copy(alpha = if (theme != null) 0.6f else 1f), Palette.bg.copy(alpha = if (theme != null) 0.6f else 1f))))
                 .border(1.dp, Palette.line, RoundedCornerShape(24.dp))
                 .semantics {
                     contentDescription = if (mode == CountMode.Tap) "နှိပ်၍ ရေတွက်ပါ" else "ပွတ်ဆွဲ၍ ရေတွက်ပါ"
@@ -181,6 +186,17 @@ fun CounterScreen(
                 ProgressBar(progress.beads / per.toFloat(), Modifier.width(80.dp))
             }
         }
+
+        PrimaryButton("သိမ်းပြီး ထွက်မည်", Modifier.height(52.dp)) {
+            model.saveNow()
+            Toast.makeText(context, "သိမ်းပြီးပါပြီ — ${Mm.n(progress.rounds)} ပတ် ${Mm.n(progress.beads)} လုံး", Toast.LENGTH_SHORT).show()
+            onBack()
+        }
+        Text(
+            "အလိုအလျောက်လည်း သိမ်းပါသည်", style = Type.small.copy(color = Palette.muted),
+            textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
+        )
+    }
     }
 
     if (confirmReset) {

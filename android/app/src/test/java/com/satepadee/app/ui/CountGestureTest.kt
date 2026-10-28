@@ -3,6 +3,7 @@ package com.satepadee.app.ui
 import android.content.Context
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.onNodeWithText
@@ -62,6 +63,27 @@ class CountGestureTest {
         repeat(5) { rule.onNodeWithTag("countArea").performTouchInput { click(center) } }
         rule.waitForIdle()
         assertEquals(5, m.state.free.beads)
+    }
+
+    @Test fun saveButtonSavesAndGoesBack() {
+        val m = model(CountMode.Tap)
+        var back = 0
+        rule.setContent { SatePaDeeTheme { CounterScreen(m, Target.Free) { back++ } } }
+        repeat(4) { rule.onNodeWithTag("countArea").performTouchInput { click(center) } }
+        rule.onNodeWithText("သိမ်းပြီး ထွက်မည်").performClick()
+        rule.waitForIdle()
+        assertEquals(1, back)
+        assertEquals("4", ApplicationProvider.getApplicationContext<Context>().getSharedPreferences("gesture", Context.MODE_PRIVATE).getInt("freeBeads", -1).toString())
+    }
+
+    @Test fun counterShowsEveryBackgroundWithoutCrashing() {
+        val m = model(CountMode.Tap)
+        for (b in listOf<String?>(null) + Backgrounds.all.map { it.id }) {
+            m.setTheme(b)
+            rule.setContent { SatePaDeeTheme { CounterScreen(m, Target.Free) {} } }
+            rule.waitForIdle()
+            rule.onNodeWithTag("countArea").assertExists()
+        }
     }
 
     @Test fun freeCounterResetsAfterConfirm() {

@@ -13,8 +13,8 @@ android {
         applicationId = "com.satepadee.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 11
-        versionName = "1.0.0"
+        versionCode = 12
+        versionName = "1.1.0"
     }
 
     // Upload key for Google Play. keystore.properties and the .jks stay out of git;
